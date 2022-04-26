@@ -35,7 +35,7 @@ private:
 
 
     void gameContent() {
-        globalData->window.draw(cardTable.text);
+        // globalData->window.draw(cardTable.text);
         cardTable.drawCardsOnTable();
     }
 };

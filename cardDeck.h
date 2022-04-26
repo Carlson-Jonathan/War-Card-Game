@@ -21,10 +21,12 @@ public:
         this->cardNames = Miscellaneous::getAllFileNamesFromDirectory("Images/Objects/PlayingCards/100x150");
         shuffleDeck(this->cardNames);
         generateCardDeck();
-        divideDeck(5);
+        generateCardBacks(numberOfCardBacks);
     }
 
 	vector<Card> deck;
+    short numberOfCardBacks = 4;
+    vector<sf::Sprite> cardBacks;
 
     //----------------------------------------------------------------------------------------------
 
@@ -65,7 +67,7 @@ public:
     //----------------------------------------------------------------------------------------------
 
     void printDeck(vector<Card> deck) {
-        for(auto i : deck) {
+        for(auto i : this->deck) {
             cout << i.value << " of " << i.suite << endl;
         }
     }
@@ -83,10 +85,19 @@ private:
         }
 
         for(string i : this->cardNames) {
-            deck.push_back(Card(*globalData, i));
+            this->deck.push_back(Card(*globalData, i));
         }
     }
 
+    //----------------------------------------------------------------------------------------------
+
+    void generateCardBacks(short numberOfBacks) {
+        for(short i = 0; i < numberOfBacks; i++) {
+            sf::Sprite cardBack;
+            cardBack.setTexture(globalData->textures.textures["cardBack"]);
+            this->cardBacks.push_back(cardBack);
+        }
+    }
 };
 
 #endif // CARDDECK_H

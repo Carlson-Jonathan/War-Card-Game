@@ -1,10 +1,11 @@
-<h1>Card Game Framework</h1>
+<h1>War Card Game</h1>
 
 <b>DESCRIPTION:</b>
-<p>This repository is a framework for making a card game in C++ using SFML. This framework contains
-   the necessary classes to load playing card images, manage textures, set sound and music, access
-   and use mouse and joystick controls, and several other various functions like generating random
-   numbers and reading files from folders.</p>
+<p>This is a very simply card game- War, where 2 or more cards are compared. The highest card wins
+   the lower card(s). Losing all cards loses the game.</p>
+<p>My purpose in making this game is to apply my card-game-framework repository and learn how to
+   use the SFML framework more effectively. Once I complete this project, I should be able to apply
+   the things learned to a more compicated card game.</p>
 
 <b>DEPENDENCIES:</b>
 <ul><li>C++ 11</li>
