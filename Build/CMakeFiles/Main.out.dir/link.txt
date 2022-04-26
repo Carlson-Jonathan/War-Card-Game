@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/Main.out.dir/main.cpp.o CMakeFiles/Main.out.dir/miscellaneous.cpp.o -o ../Main.out  /usr/lib/x86_64-linux-gnu/libsfml-graphics.so.2.5.1 /usr/lib/x86_64-linux-gnu/libsfml-audio.so.2.5.1 /usr/lib/x86_64-linux-gnu/libsfml-window.so.2.5.1 /usr/lib/x86_64-linux-gnu/libsfml-system.so.2.5.1 
