@@ -1,0 +1,3 @@
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/UnitTests/Build/CMakeFiles/rebuild_cache.dir
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/UnitTests/Build/CMakeFiles/edit_cache.dir
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/UnitTests/Build/CMakeFiles/Main.out.dir

@@ -1,0 +1,114 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/card.h
+iostream
+-
+SFML/Graphics.hpp
+-
+SFML/Window.hpp
+-
+initializer.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/initializer.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/cardDeck.h
+iostream
+-
+card.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/card.h
+miscellaneous.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/miscellaneous.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/cardTable.h
+iostream
+-
+initializer.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/initializer.h
+cardDeck.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/cardDeck.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/eventHandler.h
+iostream
+-
+vector
+-
+SFML/Window.hpp
+-
+SFML/Graphics.hpp
+-
+SFML/System.hpp
+-
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/game.h
+iostream
+-
+cardTable.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/cardTable.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/gameSound.h
+iostream
+-
+SFML/Audio.hpp
+-
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/initializer.h
+iostream
+-
+SFML/Graphics.hpp
+-
+SFML/System.hpp
+-
+SFML/Window.hpp
+-
+SFML/Audio.hpp
+-
+eventHandler.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/eventHandler.h
+gameSound.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/gameSound.h
+textureManager.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/textureManager.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/main.cpp
+iostream
+-
+time.h
+-
+initializer.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/initializer.h
+game.h
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/game.h
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/miscellaneous.h
+iostream
+-
+dirent.h
+-
+vector
+-
+sstream
+-
+stdlib.h
+-
+time.h
+-
+
+/media/jonathan/2TB Storage and Game Drive/Jon/Programming/CardGames/CardGameFramework/textureManager.h
+iostream
+-
+dirent.h
+-
+cstring
+-
+SFML/Graphics.hpp
+-
+map
+-
+vector
+-
+
