@@ -21,9 +21,11 @@ public:
         generatePlayers();
         dealCards();
         setCardPositions();
+        // setDemoText();
     }
 
     sf::Text text;
+    vector<sf::Text> textV;
 
     //----------------------------------------------------------------------------------------------
 
@@ -81,6 +83,44 @@ public:
         cardDeck.cardBacks[3].setOrigin(xMid + 200, yMid - 195);
         cardDeck.cardBacks[4].setOrigin(xMid +  50, yMid - 195);
         cardDeck.cardBacks[5].setOrigin(xMid - 100, yMid - 195);
+
+        // ------------------------------ Player hand size text ----------------------------
+
+        if (!font.loadFromFile(fontFile)) {
+            cout << "Error: GameTable::setText(): Font " << fontFile << " not found." << endl; 
+            exit(139);
+        }
+
+        vector<pair<float, float>> textPositions = {
+            {100.f, 108.f},
+            {250.f, 108.f},
+            {400.f, 108.f},
+            {100.f, 643.f},
+            {250.f, 643.f},
+            {400.f, 643.f}
+        };
+
+        for(short i = 0; i < numberOfPlayers; i++) {
+            textV.push_back(text);
+
+            textV[i].setFont(font); 
+            textV[i].setCharacterSize(40); 
+            textV[i].setFillColor(sf::Color::Blue);
+            
+            textV[i].setString(to_string(playerList[i]->hand.size() - 1));
+
+            sf::FloatRect textRect = textV[0].getLocalBounds();
+            textV[i].setOrigin(textRect.left + textRect.width / 2.0f,       // Makes the center of the text box the position
+                        textRect.top  + textRect.height / 2.0f);
+             // text.setPosition(sf::Vector2f(xMid + 200, yMid + 340)); 
+
+            if(playerList[i]->hand.size() - 1 < 10) {
+                cout << "This is being read.";
+                textPositions[i].first += 4;
+            }
+
+            textV[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
+        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -93,6 +133,7 @@ public:
         for(short i = 0; i < numberOfPlayers; i++) {
             globalData->window.draw(playerList[i]->hand[0].cardSprite);
             globalData->window.draw(cardDeck.cardBacks[i]);
+            globalData->window.draw(textV[i]);
         }
     }
 
@@ -153,7 +194,7 @@ public:
 private:
 
     LinkedList<Player> playerList;
-    short numberOfPlayers = 5;
+    short numberOfPlayers = 6;
     Initializer* globalData;
     CardDeck     cardDeck; 
     string       fontFile = "Fonts/Robusta-Regular.ttf";
