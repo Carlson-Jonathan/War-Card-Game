@@ -16,8 +16,10 @@ public:
 
     GameTable() {}
     GameTable(Initializer & globalData) : cardDeck(globalData) {
+        verifyNumberOfPlayers();
         this->globalData = &globalData;
         generatePlayers();
+        dealCards();
         setCardPositions();
     }
 
@@ -53,22 +55,32 @@ public:
         //     }
 	    // }
 
-        short xMid = -(globalData->screenWidth / 2);
-        short yMid = -(globalData->screenHeight / 2);
+        float xMid = -(globalData->screenWidth / 2.0);
+        float yMid = -(globalData->screenHeight / 2.0);
 
-        cardDeck.deck[0].cardSprite.setOrigin(xMid + 200, yMid - 25);
-        cardDeck.deck[1].cardSprite.setOrigin(xMid +  50, yMid - 25);
-        cardDeck.deck[2].cardSprite.setOrigin(xMid - 100, yMid - 25);
-        cardDeck.deck[3].cardSprite.setOrigin(xMid + 200, yMid + 170);
-        cardDeck.deck[4].cardSprite.setOrigin(xMid +  50, yMid + 170);
-        cardDeck.deck[5].cardSprite.setOrigin(xMid - 100, yMid + 170);
+        vector<pair<float, float>> cardPositions = {
+            {xMid + 200.f, yMid + 170.f}, // Player 1
+            {xMid +  50.f, yMid + 170.f}, // Player 2
+            {xMid - 100.f, yMid + 170.f}, // Player 3
+            {xMid + 200.f, yMid - 25.f},  // Player 4
+            {xMid +  50.f, yMid - 25.f},  // Player 5
+            {xMid - 100.f, yMid - 25.f}   // Player 6
+        };
 
-        cardDeck.cardBacks[0].setOrigin(xMid + 200, yMid - 195);
-        cardDeck.cardBacks[1].setOrigin(xMid +  50, yMid - 195);
-        cardDeck.cardBacks[2].setOrigin(xMid - 100, yMid - 195);
-        cardDeck.cardBacks[3].setOrigin(xMid + 200, yMid + 340);              
-        cardDeck.cardBacks[4].setOrigin(xMid +  50, yMid + 340);   
-        cardDeck.cardBacks[5].setOrigin(xMid - 100, yMid + 340);                   
+        for(short i = 0; i < numberOfPlayers; i++) {
+            for(short j = 0; j < playerList[i]->hand.size(); j++) {
+                playerList[i]->hand[j].cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
+            }
+        }
+
+        printAllPlayerStats(cardPositions);
+
+        cardDeck.cardBacks[0].setOrigin(xMid + 200, yMid + 340);              
+        cardDeck.cardBacks[1].setOrigin(xMid +  50, yMid + 340);   
+        cardDeck.cardBacks[2].setOrigin(xMid - 100, yMid + 340);   
+        cardDeck.cardBacks[3].setOrigin(xMid + 200, yMid - 195);
+        cardDeck.cardBacks[4].setOrigin(xMid +  50, yMid - 195);
+        cardDeck.cardBacks[5].setOrigin(xMid - 100, yMid - 195);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -78,8 +90,8 @@ public:
 		// 	globalData->window.draw(cardDeck.deck[i].cardSprite);
 		// }
 
-        for(short i = 0; i < 6; i++) {
-            globalData->window.draw(cardDeck.deck[i].cardSprite);
+        for(short i = 0; i < numberOfPlayers; i++) {
+            globalData->window.draw(playerList[i]->hand[0].cardSprite);
             globalData->window.draw(cardDeck.cardBacks[i]);
         }
     }
@@ -103,12 +115,45 @@ public:
             drawCardsOnTable();
             globalData->window.display();
         } 
-    }    
+    }   
+
+    //----------------------------------------------------------------------------------------------
+
+    void dealCards() {
+        vector<vector<Card>> hands;
+        hands = cardDeck.divideDeck(numberOfPlayers);
+        for(short i = 0; i < numberOfPlayers; i++) {
+            playerList[i]->hand = hands[i];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    void verifyNumberOfPlayers() {
+        if(numberOfPlayers < 2 || numberOfPlayers > 6) {
+            cout << "ERROR: GameTable::numberOfPlayers: Out of range. Value must be 2-6." << endl;
+            exit(139);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    void printAllPlayerStats(vector<pair<float, float>> cardPositions) {
+        for(short i = 0; i < numberOfPlayers; i++) {
+            cout << "\n==============================\n   Player " << i + 1 << " (Hand size = " 
+                 << playerList[i]->hand.size() << ")\n==============================\n";
+            for(short j = 0; j < playerList[i]->hand.size(); j++) {
+                cout << playerList[i]->hand[j].cardName << "\t  {" << cardPositions[i].first << ", " 
+                     << cardPositions[i].second << "}" << endl;
+            }
+        }
+    }
+
 
 private:
 
     LinkedList<Player> playerList;
-    short numberOfPlayers = 6;
+    short numberOfPlayers = 5;
     Initializer* globalData;
     CardDeck     cardDeck; 
     string       fontFile = "Fonts/Robusta-Regular.ttf";

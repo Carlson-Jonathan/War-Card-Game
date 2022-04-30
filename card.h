@@ -20,6 +20,7 @@ public:
     Card() {}
     Card(Initializer & globalData, string cardName) {
         this->globalData = &globalData;
+        this->cardName = cardName;
 
         cardSprite.setTextureRect(sf::IntRect(0, 0, 100, 145));
  	    cardSprite.setTexture(globalData.textures.textures[cardName]);
@@ -29,6 +30,7 @@ public:
         setCardSuite(cardName);
     }
 
+    string cardName;
     short      value = 0;
     string     suite = "unset";
  	sf::Sprite cardSprite; 

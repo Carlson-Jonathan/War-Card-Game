@@ -2,10 +2,10 @@
 #define PLAYER_H
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 #include "initializer.h"
-#include "cardDeck.h"
 
 class Player {
 public:
@@ -14,9 +14,9 @@ public:
 
     Player* after = NULL;
     Player* before = NULL;
-
-    CardDeck cardDeck;
     string name = "Unset";
+
+    vector<Card> hand;
 
 };
 

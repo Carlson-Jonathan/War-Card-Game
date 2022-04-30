@@ -32,13 +32,13 @@ public:
 
     vector<vector<Card>> divideDeck(short numberOfDecks) {
 
-        vector<vector<Card>> decks;
+        vector<vector<Card>> hands;
         short deckSizes = this->deck.size() / numberOfDecks;
         short next = 0;
 
         // Deal into even decks.
         for(short i = 0; i < numberOfDecks; i++) { 
-            decks.push_back(
+            hands.push_back(
                 vector<Card>(this->deck.begin() + next, this->deck.begin() + deckSizes + next)
             );
             next += deckSizes;
@@ -46,10 +46,10 @@ public:
 
         // Deal out left-over cards.
         for(short i = 0; i < deck.size() % deckSizes; i++) {
-            decks[i].push_back(deck[i + (deckSizes * numberOfDecks)]);
+            hands[i].push_back(deck[i + (deckSizes * numberOfDecks)]);
         }
 
-        return decks;
+        return hands;
     }
 
     //----------------------------------------------------------------------------------------------
