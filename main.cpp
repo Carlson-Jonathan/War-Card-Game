@@ -8,15 +8,15 @@ using namespace std;
 
 #include <time.h>
 #include "initializer.h"
-#include "game.h"
+#include "gameTable.h"
 
 int main() {
 
 	srand(time(NULL)); 		// For seeding the random number generator
 	Initializer globalData;
 
-	Game game(globalData);
-	game.gameLoop();
+	GameTable gameTable(globalData);
+	gameTable.gameLoop();
 
 	return 0;
 }

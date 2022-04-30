@@ -4,12 +4,13 @@
 #include <iostream>
 using namespace std;
 
+#include "initializer.h"
 #include "cardDeck.h"
 
 class Player {
 public:
 
-    Player() {}
+    Player () {}
 
     Player* after = NULL;
     Player* before = NULL;

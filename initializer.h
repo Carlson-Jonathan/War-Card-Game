@@ -17,7 +17,7 @@ using namespace std;
 class Initializer {
 public:
 
-	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "Gamework Framework By Jonathan Carlson"), 
+	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
 					eventHandler(window, screenWidth, screenHeight) {
 						
 		window.setFramerateLimit(frameRate);
@@ -32,7 +32,7 @@ public:
 
     //----------------------------------------------------------------------------------------------
 
-	unsigned int screenWidth  = 1333;
+	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
 	short frameRate           = 60;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";

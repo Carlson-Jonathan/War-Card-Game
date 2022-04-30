@@ -25,7 +25,7 @@ public:
     }
 
 	vector<Card> deck;
-    short numberOfCardBacks = 4;
+    short numberOfCardBacks = 6;
     vector<sf::Sprite> cardBacks;
 
     //----------------------------------------------------------------------------------------------
