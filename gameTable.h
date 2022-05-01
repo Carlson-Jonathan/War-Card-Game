@@ -22,7 +22,6 @@ public:
         dealCards();
         setCardPositions();
         setTextPositions();
-        globalData.gameSound.playSoundEffect("playerWin.ogg");
     }
 
     //----------------------------------------------------------------------------------------------
@@ -42,23 +41,6 @@ public:
         text.setOrigin(textRect.left + textRect.width / 2.0f,
                        textRect.top  + textRect.height / 2.0f);
         text.setPosition(sf::Vector2f(globalData->screenWidth / 1.65, 60));
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    void soundEffectTest () {
-
-        bool cardHover = false;
-
-        if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            sf::Vector2i mousePosition = sf::Mouse::getPosition(globalData->window);
-
-            if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
-                mousePosition.y >= 37 && mousePosition.y <= 183)
-                    globalData->gameSound.playSoundEffect("playerWin.ogg");
-        }
-
-        // cout << "Mouse Position: " << mousePosition.x << " | " << mousePosition.y << endl;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -168,7 +150,6 @@ public:
             globalData->eventHandler.listen();
             globalData->window.clear(sf::Color(0, 90, 0));
             drawCardsOnTable();
-            // soundEffectTest();
             globalData->window.display();
         } 
     }   
