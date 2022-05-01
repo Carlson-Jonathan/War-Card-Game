@@ -21,6 +21,8 @@ public:
 
 	void listen();
 
+	bool cardClick;
+
 private:
 
 	sf::RenderWindow* window;
@@ -33,7 +35,8 @@ private:
 	void mouseButton();
 	void closeWindow();
 	void resizeWindow();
-	void makeNoise();
+	void cardClicked();
+	void resetEvents();
 };
 
 #endif // EVENTHANDLER_H
@@ -54,6 +57,8 @@ EventHandler::EventHandler(sf::RenderWindow & window, unsigned int & screenWidth
 
 void EventHandler::listen() {
 	while (window->pollEvent(event)) {
+
+		resetEvents();	
 
 		switch(event.type) {
 			case sf::Event::Closed:
@@ -79,7 +84,7 @@ void EventHandler::listen() {
 		}	
 
 		joystick.joystickActions(0);
-		joystick.joystickActions(1);		
+		joystick.joystickActions(1);
 	}
 }
 
@@ -90,7 +95,7 @@ void EventHandler::mouseButton() {
 	switch(event.key.code) {
 		case sf::Mouse::Left:
 			cout << "Mouse LEFT" << endl;
-			makeNoise();
+			cardClicked();
 			break;
 		case sf::Mouse::Right:
 			cout << "Mouse RIGHT" << endl;
@@ -125,10 +130,18 @@ void EventHandler::resizeWindow() {
 
 // -------------------------------------------------------------------------------------------------
 
-void EventHandler::makeNoise() { // Sound effects test
+void EventHandler::cardClicked() { // Sound effects test
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
 	cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
 	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
-		mousePosition.y >= 37 && mousePosition.y <= 183)
+		mousePosition.y >= 37 && mousePosition.y <= 183) {
 		gameSound->playSoundEffect("tClick.ogg");
+		cardClick = true;
+	}
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void EventHandler::resetEvents() {
+	cardClick = false;
 }

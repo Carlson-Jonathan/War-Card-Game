@@ -21,11 +21,12 @@ public:
 private:
 
     Initializer*               globalData;
-    short                      numberOfPlayers = 4;
+    short                      numberOfPlayers = 6;
     LinkedList<Player>         playerList;
     CardDeck                   cardDeck; 
     vector<pair<float, float>> cardPositions;
     vector<sf::Sprite>         cardMarkers;
+    bool                       revealCard = false;
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
 	sf::Font                   font; 
     sf::Text                   text;
@@ -40,8 +41,9 @@ private:
     void generatePlayers();
     void dealCards();    
     void verifyNumberOfPlayers();
+    void playTurn();
+    void eventMonitor();
     void printAllPlayerStats();
-
 };
 
 #endif // GAMETABLE_H
@@ -151,14 +153,14 @@ void GameTable::setTextPositions() {
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(40); 
         handSizeNumbers[i].setFillColor(sf::Color::Blue);
-        handSizeNumbers[i].setString(to_string(playerList[i]->hand.size() - 1));
+        handSizeNumbers[i].setString(to_string(playerList[i]->hand.size()));
 
         // Makes the center of the text box the position
         sf::FloatRect textRect = handSizeNumbers[0].getLocalBounds();
         handSizeNumbers[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
                                         textRect.top  + textRect.height / 2.0f);
 
-        if(playerList[i]->hand.size() - 1 < 10) 
+        if(playerList[i]->hand.size() < 10) 
             textPositions[i].first += 3;
 
         handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
@@ -174,7 +176,10 @@ void GameTable::drawCardsOnTable() {
 
     for(short i = 0; i < numberOfPlayers; i++) {
         globalData->window.draw(cardMarkers[i]);
-        // globalData->window.draw(playerList[i]->hand[0].cardSprite);
+
+        if(revealCard)
+            globalData->window.draw(playerList[i]->hand[0].cardSprite);
+
         globalData->window.draw(cardDeck.cardBacks[i]);
         globalData->window.draw(handSizeNumbers[i]);
     }
@@ -195,6 +200,7 @@ void GameTable::generatePlayers() {
 void GameTable::gameLoop() {
     while(globalData->window.isOpen()) {
         globalData->eventHandler.listen();
+        eventMonitor();
         globalData->window.clear(sf::Color(0, 90, 0));
         drawCardsOnTable();
         globalData->window.display();
@@ -218,6 +224,19 @@ void GameTable::verifyNumberOfPlayers() {
         cout << "ERROR: GameTable::numberOfPlayers: Out of range. Value must be 2-6." << endl;
         exit(139);
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::playTurn() {
+    if(globalData->eventHandler.cardClick)
+        revealCard = true;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::eventMonitor() {
+    playTurn();
 }
 
 // -------------------------------------------------------------------------------------------------

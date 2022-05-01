@@ -14,12 +14,14 @@ public:
 
     Player () {}
 
-    Player* after = NULL;
-    Player* before = NULL;
-    string name = "Unset";
+    Player* after      = NULL;
+    Player* before     = NULL;
+    string name        = "Unset";
 
     vector<Card> hand;
-
 };
 
 #endif // PLAYER_H
+
+
+// =================================================================================================
