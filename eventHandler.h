@@ -8,7 +8,6 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include "gameSound.h"
 #include "joystick.h"
 
 using namespace std;

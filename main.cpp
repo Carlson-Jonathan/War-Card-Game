@@ -4,11 +4,11 @@
 #define MAIN_CPP
 
 #include <iostream>
-using namespace std;
-
 #include <time.h>
 #include "initializer.h"
 #include "gameTable.h"
+
+using namespace std;
 
 int main() {
 

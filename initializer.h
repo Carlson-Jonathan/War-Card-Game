@@ -8,9 +8,9 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
+#include "gameSound.h"
 #include "eventHandler.h"
 #include "textureManager.h"
-#include "gameSound.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ class Initializer {
 public:
 
 	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
-					gameSound(), eventHandler(window, screenWidth, screenHeight, gameSound) {
+					eventHandler(window, screenWidth, screenHeight, gameSound) {
 						
 		window.setFramerateLimit(frameRate);
 
