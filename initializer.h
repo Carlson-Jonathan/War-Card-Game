@@ -4,15 +4,15 @@
 #define INITIALIZER_H
 
 #include <iostream>
-using namespace std;
-
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
 #include "eventHandler.h"
-#include "gameSound.h"
 #include "textureManager.h"
+#include "gameSound.h"
+
+using namespace std;
 
 class Initializer {
 public:

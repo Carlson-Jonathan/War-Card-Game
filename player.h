@@ -1,3 +1,5 @@
+// Copyright Jonathan Carlson 2022
+
 #ifndef PLAYER_H
 #define PLAYER_H
 

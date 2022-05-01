@@ -19,10 +19,6 @@ public:
 		SFMLmusic.setVolume(35.f);
 		loadSoundFilePathsFromDirectories();
 		loadSoundEffects();
-
-		for(auto i : soundFilePaths) { 
-			cout << i.first << " | " << i.second << endl;
-		}
 	}
 
 	sf::SoundBuffer buffer;

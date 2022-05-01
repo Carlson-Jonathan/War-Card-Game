@@ -15,6 +15,9 @@ using namespace std;
 class TextureManager {
 public:
 
+
+
+
 	TextureManager() {
 		loadTextureFilePathsFromDirectories();
 		populateTextureList();
