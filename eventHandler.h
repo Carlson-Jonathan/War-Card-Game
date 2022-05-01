@@ -130,5 +130,5 @@ void EventHandler::makeNoise() { // Sound effects test
 	cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
 	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
 		mousePosition.y >= 37 && mousePosition.y <= 183)
-		gameSound->playSoundEffect("playerWin.ogg");
+		gameSound->playSoundEffect("tClick.ogg");
 }

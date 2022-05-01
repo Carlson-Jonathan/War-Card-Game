@@ -50,6 +50,8 @@ GameSound::GameSound() {
 	loadSoundEffects();
 }
 
+// -------------------------------------------------------------------------------------------------
+
 vector<string> GameSound::getAllFileNamesFromDirectory(const char *path) {
 	struct dirent *entry;
 	vector<string> files;

@@ -25,6 +25,7 @@ private:
     LinkedList<Player>         playerList;
     CardDeck                   cardDeck; 
     vector<pair<float, float>> cardPositions;
+    vector<sf::Sprite>         cardMarkers;
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
 	sf::Font                   font; 
     sf::Text                   text;
@@ -33,6 +34,7 @@ private:
 
     void setDemoText();
     void setCardPositions();
+    void setCardMarkerPositions();
     void setTextPositions();
     void drawCardsOnTable();
     void generatePlayers();
@@ -54,6 +56,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     generatePlayers();
     dealCards();
     setCardPositions();
+    setCardMarkerPositions();
     setTextPositions();
 }
 
@@ -115,6 +118,18 @@ void GameTable::setCardPositions() {
 
 // -------------------------------------------------------------------------------------------------
 
+void GameTable::setCardMarkerPositions() {
+    for(short i = 0; i < numberOfPlayers; i++) {
+        sf::Sprite sprite;
+        sprite.setTextureRect(sf::IntRect(0, 0, 80, 124));
+        sprite.setTexture(globalData->textures.textures["cardPositionMarker"]);
+        sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
+        cardMarkers.push_back(sprite);
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 void GameTable::setTextPositions() {
 
     if (!font.loadFromFile(fontFile)) {
@@ -133,11 +148,9 @@ void GameTable::setTextPositions() {
 
     for(short i = 0; i < numberOfPlayers; i++) {
         handSizeNumbers.push_back(text);
-
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(40); 
         handSizeNumbers[i].setFillColor(sf::Color::Blue);
-        
         handSizeNumbers[i].setString(to_string(playerList[i]->hand.size() - 1));
 
         // Makes the center of the text box the position
@@ -160,7 +173,8 @@ void GameTable::drawCardsOnTable() {
     // }
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        globalData->window.draw(playerList[i]->hand[0].cardSprite);
+        globalData->window.draw(cardMarkers[i]);
+        // globalData->window.draw(playerList[i]->hand[0].cardSprite);
         globalData->window.draw(cardDeck.cardBacks[i]);
         globalData->window.draw(handSizeNumbers[i]);
     }
