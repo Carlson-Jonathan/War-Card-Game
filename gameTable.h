@@ -6,8 +6,8 @@
 #include <iostream>
 using namespace std;
 
-#include "initializer.h"
 #include "cardDeck.h"
+#include "initializer.h"
 #include "linkedList.h"
 #include "player.h"
 
@@ -21,11 +21,9 @@ public:
         generatePlayers();
         dealCards();
         setCardPositions();
-        // setDemoText();
+        setTextPositions();
+        globalData.gameSound.playSoundEffect("playerWin.ogg");
     }
-
-    sf::Text text;
-    vector<sf::Text> textV;
 
     //----------------------------------------------------------------------------------------------
 
@@ -48,6 +46,23 @@ public:
 
     //----------------------------------------------------------------------------------------------
 
+    void soundEffectTest () {
+
+        bool cardHover = false;
+
+        if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            sf::Vector2i mousePosition = sf::Mouse::getPosition(globalData->window);
+
+            if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
+                mousePosition.y >= 37 && mousePosition.y <= 183)
+                    globalData->gameSound.playSoundEffect("playerWin.ogg");
+        }
+
+        // cout << "Mouse Position: " << mousePosition.x << " | " << mousePosition.y << endl;
+    }
+
+    //----------------------------------------------------------------------------------------------
+
     void setCardPositions() {
 
         // for(short i = 0, j = -100, k = -50; i < cardDeck.deck.size(); i++, j -= 40, k -= 10) {
@@ -57,10 +72,10 @@ public:
         //     }
 	    // }
 
-        float xMid = -(globalData->screenWidth / 2.0);
-        float yMid = -(globalData->screenHeight / 2.0);
+        this->xMid = -(globalData->screenWidth / 2.0);
+        this->yMid = -(globalData->screenHeight / 2.0);
 
-        vector<pair<float, float>> cardPositions = {
+        cardPositions = {
             {xMid + 200.f, yMid + 170.f}, // Player 1
             {xMid +  50.f, yMid + 170.f}, // Player 2
             {xMid - 100.f, yMid + 170.f}, // Player 3
@@ -75,16 +90,17 @@ public:
             }
         }
 
-        printAllPlayerStats(cardPositions);
-
         cardDeck.cardBacks[0].setOrigin(xMid + 200, yMid + 340);              
         cardDeck.cardBacks[1].setOrigin(xMid +  50, yMid + 340);   
         cardDeck.cardBacks[2].setOrigin(xMid - 100, yMid + 340);   
         cardDeck.cardBacks[3].setOrigin(xMid + 200, yMid - 195);
         cardDeck.cardBacks[4].setOrigin(xMid +  50, yMid - 195);
         cardDeck.cardBacks[5].setOrigin(xMid - 100, yMid - 195);
+    }
 
-        // ------------------------------ Player hand size text ----------------------------
+    //----------------------------------------------------------------------------------------------
+
+    void setTextPositions() {
 
         if (!font.loadFromFile(fontFile)) {
             cout << "Error: GameTable::setText(): Font " << fontFile << " not found." << endl; 
@@ -101,25 +117,23 @@ public:
         };
 
         for(short i = 0; i < numberOfPlayers; i++) {
-            textV.push_back(text);
+            handSizeNumbers.push_back(text);
 
-            textV[i].setFont(font); 
-            textV[i].setCharacterSize(40); 
-            textV[i].setFillColor(sf::Color::Blue);
+            handSizeNumbers[i].setFont(font); 
+            handSizeNumbers[i].setCharacterSize(40); 
+            handSizeNumbers[i].setFillColor(sf::Color::Blue);
             
-            textV[i].setString(to_string(playerList[i]->hand.size() - 1));
+            handSizeNumbers[i].setString(to_string(playerList[i]->hand.size() - 1));
 
-            sf::FloatRect textRect = textV[0].getLocalBounds();
-            textV[i].setOrigin(textRect.left + textRect.width / 2.0f,       // Makes the center of the text box the position
-                        textRect.top  + textRect.height / 2.0f);
-             // text.setPosition(sf::Vector2f(xMid + 200, yMid + 340)); 
+            // Makes the center of the text box the position
+            sf::FloatRect textRect = handSizeNumbers[0].getLocalBounds();
+            handSizeNumbers[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
+                                         textRect.top  + textRect.height / 2.0f);
 
-            if(playerList[i]->hand.size() - 1 < 10) {
-                cout << "This is being read.";
-                textPositions[i].first += 4;
-            }
+            if(playerList[i]->hand.size() - 1 < 10) 
+                textPositions[i].first += 3;
 
-            textV[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
+            handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
         }
     }
 
@@ -133,7 +147,7 @@ public:
         for(short i = 0; i < numberOfPlayers; i++) {
             globalData->window.draw(playerList[i]->hand[0].cardSprite);
             globalData->window.draw(cardDeck.cardBacks[i]);
-            globalData->window.draw(textV[i]);
+            globalData->window.draw(handSizeNumbers[i]);
         }
     }
 
@@ -154,6 +168,7 @@ public:
             globalData->eventHandler.listen();
             globalData->window.clear(sf::Color(0, 90, 0));
             drawCardsOnTable();
+            // soundEffectTest();
             globalData->window.display();
         } 
     }   
@@ -190,15 +205,24 @@ public:
         }
     }
 
+    //----------------------------------------------------------------------------------------------
 
 private:
 
-    LinkedList<Player> playerList;
-    short numberOfPlayers = 6;
     Initializer* globalData;
-    CardDeck     cardDeck; 
-    string       fontFile = "Fonts/Robusta-Regular.ttf";
-	sf::Font     font; 
+
+    short numberOfPlayers = 4;
+    LinkedList<Player> playerList;
+
+    CardDeck cardDeck; 
+    vector<pair<float, float>> cardPositions;
+
+    string fontFile = "Fonts/Robusta-Regular.ttf";
+	sf::Font font; 
+    sf::Text text;
+    vector<sf::Text> handSizeNumbers;
+
+    float xMid, yMid;
 };
 
 #endif // GAMETABLE_H

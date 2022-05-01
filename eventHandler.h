@@ -11,6 +11,8 @@ using namespace std;
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
+#include "gameSound.h"
+
 /* 
 	It works, but it obviously needs a major refactor/cleanup
 */
@@ -19,11 +21,15 @@ class EventHandler {
 public:
 
 	EventHandler() {}
-	EventHandler(sf::RenderWindow & window, unsigned int & screenWidth, unsigned int & screenHeight) {
+	EventHandler(sf::RenderWindow & window, unsigned int & screenWidth, unsigned int & screenHeight, GameSound & gameSound) {
 		this->window = &window;
 		this->screenWidth = &screenWidth;
 		this->screenHeight = &screenHeight;
+		this->gameSound = &gameSound;
 	}
+
+	sf::Event event;
+	GameSound* gameSound;
 
 	bool Joystick_0_Button_0  = false;
 	bool Joystick_0_Button_1  = false;
@@ -90,7 +96,6 @@ private:
 	unsigned int* screenWidth;
 	unsigned int* screenHeight;
 
-	sf::Event event;
 	sf::RenderWindow* window;
 
 	/*------------------------------------------------------------------------------------------------*/
@@ -115,6 +120,7 @@ private:
 		switch(event.key.code) {
 			case sf::Mouse::Left:
 				cout << "Mouse LEFT" << endl;
+				makeNoise();
 				break;
 			case sf::Mouse::Right:
 				cout << "Mouse RIGHT" << endl;
@@ -234,6 +240,14 @@ private:
 		cout << "J0_B13 = " << Joystick_0_Button_13 << endl;
 		cout << "J0_B14 = " << Joystick_0_Button_14 << endl;
 		cout << "J0_B15 = " << Joystick_0_Button_15 << endl;
+	}
+
+	void makeNoise() {
+		sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
+		cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
+		if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
+		   mousePosition.y >= 37 && mousePosition.y <= 183)
+			gameSound->playSoundEffect("playerWin.ogg");
 	}
 };
 #endif // EVENTHANDLER_H

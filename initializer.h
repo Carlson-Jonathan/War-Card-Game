@@ -18,7 +18,7 @@ class Initializer {
 public:
 
 	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
-					eventHandler(window, screenWidth, screenHeight) {
+					gameSound(), eventHandler(window, screenWidth, screenHeight, gameSound) {
 						
 		window.setFramerateLimit(frameRate);
 
@@ -40,8 +40,8 @@ public:
 	sf::RenderWindow window;
 	// sf::Sprite background;
 
-	EventHandler   eventHandler;
 	GameSound      gameSound;
+	EventHandler   eventHandler;
 	TextureManager textures;	
 };
 
