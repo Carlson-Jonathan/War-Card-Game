@@ -34,7 +34,7 @@ public:
 
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
-	short frameRate           = 60;
+	short frameRate           = 40;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 
 	sf::RenderWindow window;

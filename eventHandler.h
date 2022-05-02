@@ -71,7 +71,7 @@ void EventHandler::listen() {
 				mouseButton();
 				break;
 			case sf::Event::MouseButtonReleased:
-				cout << "Released!" << endl;
+				// cout << "Released!" << endl;
 				break;		
 			case sf::Event::MouseWheelMoved:
 				cout << "Mouse wheel Scroll:" << event.mouseWheel.delta << endl;
@@ -94,7 +94,7 @@ void EventHandler::listen() {
 void EventHandler::mouseButton() {
 	switch(event.key.code) {
 		case sf::Mouse::Left:
-			cout << "Mouse LEFT" << endl;
+			// cout << "Mouse LEFT" << endl;
 			cardClicked();
 			break;
 		case sf::Mouse::Right:
@@ -132,7 +132,7 @@ void EventHandler::resizeWindow() {
 
 void EventHandler::cardClicked() { // Sound effects test
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-	cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
+	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
 	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
 		mousePosition.y >= 37 && mousePosition.y <= 183) {
 		gameSound->playSoundEffect("tClick.ogg");

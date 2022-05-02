@@ -14,9 +14,10 @@ public:
 
     Player () {}
 
-    Player* after      = NULL;
-    Player* before     = NULL;
-    string name        = "Unset";
+    Player* after  = NULL;
+    Player* before = NULL;
+    string  name   = "Unset";
+    short   numCardsInHand;
 
     vector<Card> hand;
 };

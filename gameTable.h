@@ -30,6 +30,8 @@ private:
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
 	sf::Font                   font; 
     sf::Text                   text;
+    sf::Clock                  clock;
+    sf::Time                   elapsed; 
     vector<sf::Text>           handSizeNumbers;
     float xMid, yMid;
 
@@ -41,7 +43,8 @@ private:
     void generatePlayers();
     void dealCards();    
     void verifyNumberOfPlayers();
-    void playTurn();
+    void startTurn();
+    void playACard(short i);
     void eventMonitor();
     void printAllPlayerStats();
 };
@@ -153,7 +156,7 @@ void GameTable::setTextPositions() {
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(40); 
         handSizeNumbers[i].setFillColor(sf::Color::Blue);
-        handSizeNumbers[i].setString(to_string(playerList[i]->hand.size()));
+        handSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
 
         // Makes the center of the text box the position
         sf::FloatRect textRect = handSizeNumbers[0].getLocalBounds();
@@ -170,19 +173,37 @@ void GameTable::setTextPositions() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::drawCardsOnTable() {
-    // for(short i = 0; i < cardDeck.deck.size(); i++) {
-    // 	globalData->window.draw(cardDeck.deck[i].cardSprite);
-    // }
+
+    // When revealCard event, place cards face up 1 at a time with XXX ms delay.
+    static short j = 0; // Reset this to 0 on click and start a new round?
+    if(revealCard) {
+        if(elapsed.asMilliseconds() > 150 && j < numberOfPlayers) {
+            j++;
+            clock.restart();
+            playerList[j - 1]->numCardsInHand--;
+            handSizeNumbers[j - 1].setString(to_string(playerList[j - 1]->numCardsInHand));
+            // cout << playerList[j - 1]->name << " has " << playerList[j - 1]->numCardsInHand << " cards in hand." << endl;
+        }
+    }
 
     for(short i = 0; i < numberOfPlayers; i++) {
         globalData->window.draw(cardMarkers[i]);
-
-        if(revealCard)
-            globalData->window.draw(playerList[i]->hand[0].cardSprite);
-
         globalData->window.draw(cardDeck.cardBacks[i]);
         globalData->window.draw(handSizeNumbers[i]);
+        elapsed = clock.getElapsedTime();
+        if(i < j) {
+            globalData->window.draw(playerList[i]->hand[0].cardSprite);
+        }
     }
+
+    if(j >= numberOfPlayers)
+        revealCard == false;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::playACard(short i) {
+
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -214,6 +235,7 @@ void GameTable::dealCards() {
     hands = cardDeck.divideDeck(numberOfPlayers);
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList[i]->hand = hands[i];
+        playerList[i]->numCardsInHand = hands[i].size();
     }
 }
 
@@ -228,15 +250,15 @@ void GameTable::verifyNumberOfPlayers() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::playTurn() {
-    if(globalData->eventHandler.cardClick)
+void GameTable::startTurn() {
+    if(globalData->eventHandler.cardClick) 
         revealCard = true;
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::eventMonitor() {
-    playTurn();
+    startTurn();
 }
 
 // -------------------------------------------------------------------------------------------------
