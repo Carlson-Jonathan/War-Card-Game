@@ -44,7 +44,7 @@ private:
     void dealCards();    
     void verifyNumberOfPlayers();
     void startTurn();
-    void playACard(short i);
+    void playCardSound();
     void eventMonitor();
     void printAllPlayerStats();
 };
@@ -176,12 +176,14 @@ void GameTable::drawCardsOnTable() {
 
     // When revealCard event, place cards face up 1 at a time with XXX ms delay.
     static short j = 0; // Reset this to 0 on click and start a new round?
+
     if(revealCard) {
         if(elapsed.asMilliseconds() > 150 && j < numberOfPlayers) {
             j++;
             clock.restart();
             playerList[j - 1]->numCardsInHand--;
             handSizeNumbers[j - 1].setString(to_string(playerList[j - 1]->numCardsInHand));
+            playCardSound();
             // cout << playerList[j - 1]->name << " has " << playerList[j - 1]->numCardsInHand << " cards in hand." << endl;
         }
     }
@@ -196,14 +198,17 @@ void GameTable::drawCardsOnTable() {
         }
     }
 
-    if(j >= numberOfPlayers)
-        revealCard == false;
+    if(j >= numberOfPlayers) {
+        revealCard = false;
+        j = 0; // Setting j back to 0 will remove the face-up card from the table.
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::playACard(short i) {
-
+void GameTable::playCardSound() {
+    short randNum = Miscellaneous::generateRandomNumber(2);
+    globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -251,8 +256,10 @@ void GameTable::verifyNumberOfPlayers() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::startTurn() {
-    if(globalData->eventHandler.cardClick) 
+    if(globalData->eventHandler.cardClick) {
         revealCard = true;
+        globalData->eventHandler.cardClick = false;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

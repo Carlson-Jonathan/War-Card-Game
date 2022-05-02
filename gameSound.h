@@ -45,7 +45,7 @@ private:
 
 GameSound::GameSound() {
 	music.setLoop(true);
-	music.setVolume(35.f);
+	music.setVolume(30.f);
 	loadSoundFilePathsFromDirectories();
 	loadSoundEffects();
 }
