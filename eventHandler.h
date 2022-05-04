@@ -21,7 +21,7 @@ public:
 
 	void listen();
 
-	bool cardClick;
+	bool cardWasClicked;
 
 private:
 
@@ -136,12 +136,12 @@ void EventHandler::cardClicked() { // Sound effects test
 	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
 		mousePosition.y >= 37 && mousePosition.y <= 183) {
 		gameSound->playSoundEffect("tClick.ogg");
-		cardClick = true;
+		cardWasClicked = true;
 	}
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void EventHandler::resetEvents() {
-	cardClick = false;
+	cardWasClicked = false;
 }

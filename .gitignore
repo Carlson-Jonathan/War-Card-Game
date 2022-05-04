@@ -32,4 +32,5 @@
 *.app
 
 # Build Folder
-Build
+**/Build
+UnitTests/Build/*

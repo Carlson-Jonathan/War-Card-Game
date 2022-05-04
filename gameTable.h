@@ -4,9 +4,9 @@
 #define GAMETABLE_H
 
 #include <iostream>
+#include <vector>
 #include "cardDeck.h"
 #include "initializer.h"
-#include "linkedList.h"
 #include "player.h"
 
 using namespace std;
@@ -22,30 +22,43 @@ private:
 
     Initializer*               globalData;
     short                      numberOfPlayers = 6;
-    LinkedList<Player>         playerList;
+    vector<Player>         playerList;
     CardDeck                   cardDeck; 
     vector<pair<float, float>> cardPositions;
-    vector<sf::Sprite>         cardMarkers;
-    bool                       revealCard = false;
+    vector<sf::Sprite>         greenRectangles;
+    bool                       mayPlayNextRound = false;
+    bool                       winnerNotYetDetermined = false;
+    short                      faceupCards = 0;
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
 	sf::Font                   font; 
     sf::Text                   text;
     sf::Clock                  clock;
     sf::Time                   elapsed; 
     vector<sf::Text>           handSizeNumbers;
-    float xMid, yMid;
+    float                      xMid, yMid;
 
-    void setDemoText();
+    // ---------------------------------------------------------------
+
+    void setHeadingText();
     void setCardPositions();
-    void setCardMarkerPositions();
-    void setTextPositions();
-    void drawCardsOnTable();
-    void generatePlayers();
-    void dealCards();    
+    void setGreenRectanglePositions();
+    void setAndPlaceDeckNumbers();
+
     void verifyNumberOfPlayers();
-    void startTurn();
-    void playCardSound();
+    void generatePlayers();
+    void dealCardsToPlayers();    
+
     void eventMonitor();
+    void checkForCardClick();
+
+    void startNextTurn();
+    void revealCardsWithDelayOf(short delay);
+    void drawCardsBacksAndNumbers();
+    void playCardPlacementSound();
+
+    short getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card);
+    vector<Player> getRoundWinner  (vector<Player> competingPlayers, short ith_card);
+
     void printAllPlayerStats();
 };
 
@@ -59,15 +72,15 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     verifyNumberOfPlayers();
     this->globalData = &globalData;
     generatePlayers();
-    dealCards();
+    dealCardsToPlayers();
     setCardPositions();
-    setCardMarkerPositions();
-    setTextPositions();
+    setGreenRectanglePositions();
+    setAndPlaceDeckNumbers();
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setDemoText() {
+void GameTable::setHeadingText() {
     if (!font.loadFromFile(fontFile)) {
         cout << "ERROR: GameTable::setText(): Font " << fontFile << " not found." << endl; 
         exit(139);
@@ -108,8 +121,8 @@ void GameTable::setCardPositions() {
     };
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        for(short j = 0; j < playerList[i]->hand.size(); j++) {
-            playerList[i]->hand[j].cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
+        for(short j = 0; j < playerList[i].hand.size(); j++) {
+            playerList[i].hand[j].cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
         }
     }
 
@@ -123,19 +136,19 @@ void GameTable::setCardPositions() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setCardMarkerPositions() {
+void GameTable::setGreenRectanglePositions() {
     for(short i = 0; i < numberOfPlayers; i++) {
         sf::Sprite sprite;
         sprite.setTextureRect(sf::IntRect(0, 0, 80, 124));
         sprite.setTexture(globalData->textures.textures["cardPositionMarker"]);
         sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
-        cardMarkers.push_back(sprite);
+        greenRectangles.push_back(sprite);
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setTextPositions() {
+void GameTable::setAndPlaceDeckNumbers() {
 
     if (!font.loadFromFile(fontFile)) {
         cout << "ERROR: GameTable::setText(): Font " << fontFile << " not found." << endl; 
@@ -156,14 +169,14 @@ void GameTable::setTextPositions() {
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(40); 
         handSizeNumbers[i].setFillColor(sf::Color::Blue);
-        handSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
+        handSizeNumbers[i].setString(to_string(playerList[i].numCardsInHand));
 
         // Makes the center of the text box the position
         sf::FloatRect textRect = handSizeNumbers[0].getLocalBounds();
         handSizeNumbers[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
                                         textRect.top  + textRect.height / 2.0f);
 
-        if(playerList[i]->hand.size() < 10) 
+        if(playerList[i].hand.size() < 10) 
             textPositions[i].first += 3;
 
         handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
@@ -172,41 +185,103 @@ void GameTable::setTextPositions() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::drawCardsOnTable() {
+void GameTable::startNextTurn() {
 
-    // When revealCard event, place cards face up 1 at a time with XXX ms delay.
-    static short j = 0; // Reset this to 0 on click and start a new round?
+    if(mayPlayNextRound) 
+        revealCardsWithDelayOf(150);
 
-    if(revealCard) {
-        if(elapsed.asMilliseconds() > 150 && j < numberOfPlayers) {
-            j++;
-            clock.restart();
-            playerList[j - 1]->numCardsInHand--;
-            handSizeNumbers[j - 1].setString(to_string(playerList[j - 1]->numCardsInHand));
-            playCardSound();
-            // cout << playerList[j - 1]->name << " has " << playerList[j - 1]->numCardsInHand << " cards in hand." << endl;
-        }
-    }
+    drawCardsBacksAndNumbers();
 
-    for(short i = 0; i < numberOfPlayers; i++) {
-        globalData->window.draw(cardMarkers[i]);
-        globalData->window.draw(cardDeck.cardBacks[i]);
-        globalData->window.draw(handSizeNumbers[i]);
-        elapsed = clock.getElapsedTime();
-        if(i < j) {
-            globalData->window.draw(playerList[i]->hand[0].cardSprite);
-        }
-    }
 
-    if(j >= numberOfPlayers) {
-        revealCard = false;
-        j = 0; // Setting j back to 0 will remove the face-up card from the table.
+    if(faceupCards == numberOfPlayers && winnerNotYetDetermined) {
+        vector<Player> winner = getRoundWinner(playerList, 0); 
+        cout << "============================\nAnd the winner is... " << winner[0].name << "!!!\n============================" << endl;
+        winnerNotYetDetermined = false;
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::playCardSound() {
+vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, short ith_card) {
+
+    vector<Player> winnerPool;
+    short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
+    cout << "Highest card round " << ith_card << " = " << highestCard << endl;
+
+    // Check for ties. Re-play if there is a tie.
+    for(short i = 0; i < competingPlayers.size(); i++) {
+        if(competingPlayers[i].outOfGame)
+            continue;
+
+        short currentCard = competingPlayers[i].hand[ith_card].value;
+        cout << competingPlayers[i].name << ", " << ith_card << " card  = " << competingPlayers[i].hand[ith_card].cardName << endl;
+
+        if(currentCard == highestCard) {
+            cout << competingPlayers[i].name << ": Current card: " << currentCard << " | " << "Highest card: " << highestCard << endl;
+            winnerPool.push_back(competingPlayers[i]);
+        }
+    }    
+
+
+    cout << "Winner pool size: " << winnerPool.size() << endl;
+
+    if(winnerPool.size() > 1)
+        winnerPool = getRoundWinner(winnerPool, ++ith_card);
+
+    return winnerPool;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+short GameTable::getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card) {
+    short highestCard = 0;
+
+    for(short i = 0; i < competingPlayers.size(); i++) {
+        if(playerList[i].outOfGame)
+            continue;
+
+        short currentCard = competingPlayers[i].hand[ith_card].value;
+        if(currentCard > highestCard)
+            highestCard = currentCard;
+    }
+
+    return highestCard;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::drawCardsBacksAndNumbers() {
+    for(short i = 0; i < numberOfPlayers; i++) {
+        globalData->window.draw(greenRectangles[i]);
+        globalData->window.draw(cardDeck.cardBacks[i]);
+        globalData->window.draw(handSizeNumbers[i]);
+        elapsed = clock.getElapsedTime();
+        if(i < faceupCards) {
+            globalData->window.draw(playerList[i].hand[0].cardSprite);
+        }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::revealCardsWithDelayOf(short delay) {
+    if(faceupCards >= numberOfPlayers) {
+        winnerNotYetDetermined = true;
+        mayPlayNextRound = false;
+    }
+
+    if(elapsed.asMilliseconds() > 150 && faceupCards < numberOfPlayers) {
+        faceupCards++;
+        clock.restart();
+        playerList[faceupCards - 1].numCardsInHand--;
+        handSizeNumbers[faceupCards - 1].setString(to_string(playerList[faceupCards - 1].numCardsInHand));
+        playCardPlacementSound();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::playCardPlacementSound() {
     short randNum = Miscellaneous::generateRandomNumber(2);
     globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
 }
@@ -215,10 +290,9 @@ void GameTable::playCardSound() {
 
 void GameTable::generatePlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        playerList.push_back(new Player);
-        playerList[i]->name = "Player " + to_string(i + 1);
+        playerList.push_back(Player());
+        playerList[i].name = "Player " + to_string(i + 1);
     }
-    playerList.makeListCircular();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -228,19 +302,19 @@ void GameTable::gameLoop() {
         globalData->eventHandler.listen();
         eventMonitor();
         globalData->window.clear(sf::Color(0, 90, 0));
-        drawCardsOnTable();
+        startNextTurn();
         globalData->window.display();
     } 
 }   
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::dealCards() {
+void GameTable::dealCardsToPlayers() {
     vector<vector<Card>> hands;
     hands = cardDeck.divideDeck(numberOfPlayers);
     for(short i = 0; i < numberOfPlayers; i++) {
-        playerList[i]->hand = hands[i];
-        playerList[i]->numCardsInHand = hands[i].size();
+        playerList[i].hand = hands[i];
+        playerList[i].numCardsInHand = hands[i].size();
     }
 }
 
@@ -255,17 +329,17 @@ void GameTable::verifyNumberOfPlayers() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::startTurn() {
-    if(globalData->eventHandler.cardClick) {
-        revealCard = true;
-        globalData->eventHandler.cardClick = false;
+void GameTable::checkForCardClick() {
+    if(globalData->eventHandler.cardWasClicked) {
+        mayPlayNextRound = true;
+        globalData->eventHandler.cardWasClicked = false;
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::eventMonitor() {
-    startTurn();
+    checkForCardClick();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -273,9 +347,9 @@ void GameTable::eventMonitor() {
 void GameTable::printAllPlayerStats() {
     for(short i = 0; i < numberOfPlayers; i++) {
         cout << "\n==============================\n   Player " << i + 1 << " (Hand size = " 
-                << playerList[i]->hand.size() << ")\n==============================\n";
-        for(short j = 0; j < playerList[i]->hand.size(); j++) {
-            cout << playerList[i]->hand[j].cardName << "\t  {" << cardPositions[i].first << ", " 
+                << playerList[i].hand.size() << ")\n==============================\n";
+        for(short j = 0; j < playerList[i].hand.size(); j++) {
+            cout << playerList[i].hand[j].cardName << "\t  {" << cardPositions[i].first << ", " 
                     << cardPositions[i].second << "}" << endl;
         }
     }
