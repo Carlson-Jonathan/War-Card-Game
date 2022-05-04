@@ -22,23 +22,29 @@ private:
 
     Initializer*               globalData;
     short                      numberOfPlayers = 6;
-    vector<Player>         playerList;
+    vector<Player>             playerList;
     CardDeck                   cardDeck; 
     vector<pair<float, float>> cardPositions;
+    vector<pair<float, float>> roundResultPositions;
     vector<sf::Sprite>         greenRectangles;
+    vector<Player>             winner;
     bool                       mayPlayNextRound = false;
     bool                       winnerNotYetDetermined = false;
+    bool                       mayDisplayRoundResults = false;
+    bool                       mayPlayVictorySound = false;
     short                      faceupCards = 0;
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
 	sf::Font                   font; 
-    sf::Text                   text;
+    sf::Text                   headingText;
     sf::Clock                  clock;
     sf::Time                   elapsed; 
     vector<sf::Text>           handSizeNumbers;
+    vector<sf::Text>           roundResultText;
     float                      xMid, yMid;
 
     // ---------------------------------------------------------------
 
+    void setTableFont();
     void setHeadingText();
     void setCardPositions();
     void setGreenRectanglePositions();
@@ -58,6 +64,8 @@ private:
 
     short getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card);
     vector<Player> getRoundWinner  (vector<Player> competingPlayers, short ith_card);
+    void setAndPlaceRoundResultText();
+    void declareWinner(Player winner);
 
     void printAllPlayerStats();
 };
@@ -73,7 +81,9 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     this->globalData = &globalData;
     generatePlayers();
     dealCardsToPlayers();
+    setTableFont();
     setCardPositions();
+    setAndPlaceRoundResultText();
     setGreenRectanglePositions();
     setAndPlaceDeckNumbers();
 }
@@ -81,20 +91,16 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::setHeadingText() {
-    if (!font.loadFromFile(fontFile)) {
-        cout << "ERROR: GameTable::setText(): Font " << fontFile << " not found." << endl; 
-        exit(139);
-    }
 
-    text.setFont(font); 
-    text.setString("War Card Game by Jonathan Carlson   |   (C) 2022");
-    text.setCharacterSize(40); 
-    text.setFillColor(sf::Color::Yellow);
+    headingText.setFont(font); 
+    headingText.setString("War Card Game by Jonathan Carlson   |   (C) 2022");
+    headingText.setCharacterSize(40); 
+    headingText.setFillColor(sf::Color::Yellow);
 
-    sf::FloatRect textRect = text.getLocalBounds();
-    text.setOrigin(textRect.left + textRect.width / 2.0f,
+    sf::FloatRect textRect = headingText.getLocalBounds();
+    headingText.setOrigin(textRect.left + textRect.width / 2.0f,
                     textRect.top  + textRect.height / 2.0f);
-    text.setPosition(sf::Vector2f(globalData->screenWidth / 1.65, 60));
+    headingText.setPosition(sf::Vector2f(globalData->screenWidth / 1.65, 60));
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -111,7 +117,7 @@ void GameTable::setCardPositions() {
     this->xMid = -(globalData->screenWidth / 2.0);
     this->yMid = -(globalData->screenHeight / 2.0);
 
-    cardPositions = {
+    cardPositions = { 
         {xMid + 200.f, yMid + 170.f}, // Player 1
         {xMid +  50.f, yMid + 170.f}, // Player 2
         {xMid - 100.f, yMid + 170.f}, // Player 3
@@ -148,12 +154,16 @@ void GameTable::setGreenRectanglePositions() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setAndPlaceDeckNumbers() {
-
-    if (!font.loadFromFile(fontFile)) {
+void GameTable::setTableFont() {
+    if (!this->font.loadFromFile(this->fontFile)) {
         cout << "ERROR: GameTable::setText(): Font " << fontFile << " not found." << endl; 
         exit(139);
-    }
+    }   
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setAndPlaceDeckNumbers() {
 
     vector<pair<float, float>> textPositions = {
         {100.f, 108.f},
@@ -165,7 +175,7 @@ void GameTable::setAndPlaceDeckNumbers() {
     };
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        handSizeNumbers.push_back(text);
+        handSizeNumbers.push_back(headingText);
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(40); 
         handSizeNumbers[i].setFillColor(sf::Color::Blue);
@@ -185,6 +195,31 @@ void GameTable::setAndPlaceDeckNumbers() {
 
 // -------------------------------------------------------------------------------------------------
 
+void GameTable::setAndPlaceRoundResultText() {
+
+    for(short i = 0; i < numberOfPlayers; i++) {
+        roundResultPositions.push_back({-cardPositions[i].first + 50.f, -cardPositions[i].second + 72.f});
+    }
+
+    for(short i = 0; i < numberOfPlayers; i++) {
+        roundResultText.push_back(headingText);
+        roundResultText[i].setFont(font); 
+        roundResultText[i].setCharacterSize(50); 
+        roundResultText[i].setFillColor(sf::Color::Red);
+        roundResultText[i].setString("Winner");
+
+        // Makes the center of the text box the position
+        sf::FloatRect textRect = roundResultText[0].getLocalBounds();
+        roundResultText[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
+                                        textRect.top  + textRect.height / 2.0f);
+
+        roundResultText[i].setPosition(sf::Vector2f(roundResultPositions[i].first, roundResultPositions[i].second));     
+        // roundResultText[i].setPosition(sf::Vector2f(100, 472));   
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 void GameTable::startNextTurn() {
 
     if(mayPlayNextRound) 
@@ -192,21 +227,47 @@ void GameTable::startNextTurn() {
 
     drawCardsBacksAndNumbers();
 
-
     if(faceupCards == numberOfPlayers && winnerNotYetDetermined) {
-        vector<Player> winner = getRoundWinner(playerList, 0); 
-        cout << "============================\nAnd the winner is... " << winner[0].name << "!!!\n============================" << endl;
-        winnerNotYetDetermined = false;
+        winner = getRoundWinner(playerList, 0); 
+        winnerNotYetDetermined = false; // Makes sure to do this only once.
+        clock.restart();
+        mayPlayVictorySound = true;
     }
+
+    if(mayPlayVictorySound && clock.getElapsedTime().asMilliseconds() > 1000)
+        declareWinner(winner[0]);
+
+    if(mayDisplayRoundResults) 
+        globalData->window.draw(roundResultText[winner[0].number - 1]);
 }
 
 // -------------------------------------------------------------------------------------------------
+
+void GameTable::declareWinner(Player winner) {
+    globalData->gameSound.playSoundEffect("winner2.ogg");
+    mayDisplayRoundResults = true;
+    mayPlayVictorySound = false;
+
+    cout << "================================\nAnd the winner is... " << winner.name << "!!!\n================================" << endl;
+    cout << "round results: {" << roundResultPositions[winner.number - 1].first << ", " << roundResultPositions[winner.number - 1].second << "}" << endl;
+    cout << "Text Position: {" << roundResultText[winner.number -1].getPosition().x << ", " << roundResultText[winner.number - 1].getPosition().y << "}" << endl;
+
+    // for(short i = 0; i < roundResultPositions.size(); i++) {
+    //     cout << "Positions: ";
+    //     cout << roundResultPositions[i].first << ", " << roundResultPositions[i].second << endl;
+    //     cout << "Origins: ";
+    //     cout << roundResultText[i].getPosition().x << ", " << roundResultText[i].getPosition().y << endl;
+    // }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 
 vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, short ith_card) {
 
     vector<Player> winnerPool;
     short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
-    cout << "Highest card round " << ith_card << " = " << highestCard << endl;
+    // cout << "Highest card round " << ith_card << " = " << highestCard << endl;
 
     // Check for ties. Re-play if there is a tie.
     for(short i = 0; i < competingPlayers.size(); i++) {
@@ -214,16 +275,15 @@ vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, 
             continue;
 
         short currentCard = competingPlayers[i].hand[ith_card].value;
-        cout << competingPlayers[i].name << ", " << ith_card << " card  = " << competingPlayers[i].hand[ith_card].cardName << endl;
+        // cout << competingPlayers[i].name << ", " << ith_card << " card  = " << competingPlayers[i].hand[ith_card].cardName << endl;
 
         if(currentCard == highestCard) {
-            cout << competingPlayers[i].name << ": Current card: " << currentCard << " | " << "Highest card: " << highestCard << endl;
+            // cout << competingPlayers[i].name << ": Current card: " << currentCard << " | " << "Highest card: " << highestCard << endl;
             winnerPool.push_back(competingPlayers[i]);
         }
     }    
 
-
-    cout << "Winner pool size: " << winnerPool.size() << endl;
+    // cout << "Winner pool size: " << winnerPool.size() << endl;
 
     if(winnerPool.size() > 1)
         winnerPool = getRoundWinner(winnerPool, ++ith_card);
@@ -291,7 +351,9 @@ void GameTable::playCardPlacementSound() {
 void GameTable::generatePlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList.push_back(Player());
+        playerList[i].number = i + 1;
         playerList[i].name = "Player " + to_string(i + 1);
+        cout << "Player " << i << ": " << playerList[i].name << " Number: " << playerList[i].number << endl;
     }
 }
 

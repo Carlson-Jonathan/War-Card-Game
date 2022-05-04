@@ -17,6 +17,7 @@ public:
     Player* after     = NULL;
     Player* before    = NULL;
     string  name      = "Unset";
+    short   number    = 0;
     bool    outOfGame = false;
     short   numCardsInHand;
 
