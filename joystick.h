@@ -1,0 +1,40 @@
+#ifndef JOYSTICK_H
+#define JOYSTICK_H
+
+#include <iostream>
+#include <vector>
+#include <SFML/System.hpp>
+#include <SFML/Window.hpp>
+
+using namespace std;
+
+class Joystick {
+public: 
+
+    Joystick() {}
+
+    void joystickActions(short joystickNumber);
+};
+
+#endif // JOYSTICK
+
+
+// =================================================================================================
+
+
+void Joystick::joystickActions(short joystickNumber) {
+
+    vector<bool> joystickButtons;
+    for(short i = 0; i < 18; i++) {
+        joystickButtons.push_back(sf::Joystick::isButtonPressed(joystickNumber, i));
+    };
+
+    for(short i = 0; i < joystickButtons.size(); i++) {
+        if(joystickButtons[i]) {
+            cout << "Joystick " << joystickNumber << " Button " << i << " is pressed " << endl;
+        }
+    }
+
+    // cout << "Joystick Axis: {" << sf::Joystick::getAxisPosition(joystickNum, sf::Joystick::X) << ", "
+    // 	 << sf::Joystick::getAxisPosition(joystickNum, sf::Joystick::Y) << "}" << endl;
+}

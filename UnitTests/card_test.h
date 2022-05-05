@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-#include "../card.h"
+// #include "../card.h"
 
 class Card_Test {
 public: 

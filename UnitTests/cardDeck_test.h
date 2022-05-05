@@ -8,8 +8,8 @@ using namespace std;
 
 #include <memory>
 #include <vector>
-#include "../cardDeck.h"
-#include "../card.h"
+// #include "../cardDeck.h"
+// #include "../card.h"
 
 class CardDeck_Test {
 public:
@@ -19,7 +19,7 @@ public:
         vector<string> cardNames = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
         CardDeck cardDeck;
 
-        cardDeck.shuffleDeck(cardNames);
+        cardDeck.shuffleDeck();
 
         if(cardDeck.cardNames == cardNames) {
             cout << "==============================================================================="

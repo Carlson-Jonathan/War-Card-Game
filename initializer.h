@@ -4,21 +4,21 @@
 #define INITIALIZER_H
 
 #include <iostream>
-using namespace std;
-
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Audio.hpp>
-#include "eventHandler.h"
 #include "gameSound.h"
+#include "eventHandler.h"
 #include "textureManager.h"
+
+using namespace std;
 
 class Initializer {
 public:
 
-	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "Gamework Framework By Jonathan Carlson"), 
-					eventHandler(window, screenWidth, screenHeight) {
+	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
+					eventHandler(window, screenWidth, screenHeight, gameSound) {
 						
 		window.setFramerateLimit(frameRate);
 
@@ -32,16 +32,16 @@ public:
 
     //----------------------------------------------------------------------------------------------
 
-	unsigned int screenWidth  = 1333;
+	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
-	short frameRate           = 60;
+	short frameRate           = 40;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 
 	sf::RenderWindow window;
 	// sf::Sprite background;
 
-	EventHandler   eventHandler;
 	GameSound      gameSound;
+	EventHandler   eventHandler;
 	TextureManager textures;	
 };
 

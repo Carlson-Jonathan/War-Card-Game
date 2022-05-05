@@ -8,9 +8,12 @@ using namespace std;
 
 #include <map>
 
+#include "../gameTable.h"
+
 #include "miscellaneous_test.h"
 #include "cardDeck_test.h"
 #include "card_test.h"
+#include "gameTable_test.h"
 
 //--------------------------------------------------------------------------------------------------
 
@@ -64,7 +67,15 @@ int main() {
     allResults.insert(pair<string, bool>(
         "Card_Test::setCardSuite_test()",
         Card_Test::setCardSuite_test()
-    ));          
+    ));    
+
+    // ===================== gameTable.h ======================
+
+    allResults.insert(pair<string, bool>(
+        "GameTable_Test::getRoundWinner_test()",
+        GameTable_Test::getRoundWinner_test()
+    ));  
+
 
     //----------------------------------------------------------------------------------------------
 
