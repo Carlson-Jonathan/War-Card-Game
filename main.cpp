@@ -16,7 +16,7 @@ int main() {
 	Initializer globalData;
 
 	GameTable gameTable(globalData);
-	gameTable.gameLoop();
+	gameTable.runGameLoop();
 
 	return 0;
 }
