@@ -30,6 +30,7 @@ private:
     vector<pair<float, float>> cardPositions;
     vector<pair<float, float>> roundResultPositions;
     vector<sf::Sprite>         greenRectangles;
+    vector<Player>             winnerPool;
     vector<Player>             winner;
     vector<sf::Text>           handSizeNumbers;
     vector<sf::Text>           winnerText;
@@ -37,9 +38,10 @@ private:
 
     bool                       mayPlayNextRound       = false;
     bool                       winnerNotYetDetermined = false;
+    bool                       mayDisplayWinnerText   = false;
     bool                       mayDisplayTieText      = false;
-    bool                       mayDisplayRoundResults = false;
     bool                       mayPlayVictorySound    = false;
+    bool                       mayPlayTieSound        = false;
     
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
     float                      xMid, yMid;
@@ -75,7 +77,9 @@ private:
     short getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card);
     void displayTieCondition();
     vector<Player> getRoundWinner  (vector<Player> competingPlayers, short ith_card);
-    void declareWinner(Player winner);
+    void declareWinner();
+    void setAndPlaceTieText();
+    void declareTie();
 
     void printAllPlayerStats();
 };
@@ -219,17 +223,26 @@ void GameTable::setAndPlaceVictoryText() {
 
     for(short i = 0; i < numberOfPlayers; i++) {
         winnerText.push_back(headingText);
+        tieText.push_back(headingText);
         winnerText[i].setFont(font); 
+        tieText[i].setFont(font);
         winnerText[i].setCharacterSize(70); 
+        tieText[i].setCharacterSize(70);
         winnerText[i].setFillColor(sf::Color(60, 210, 60));
+        tieText[i].setFillColor(sf::Color::Cyan);
         winnerText[i].setString("Winner");
+        tieText[i].setString("Tie");
 
         // Makes the center of the text box the position
         sf::FloatRect textRect = winnerText[0].getLocalBounds();
         winnerText[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
-                                        textRect.top  + textRect.height / 2.0f);
+                                textRect.top  + textRect.height / 2.0f);
 
-        winnerText[i].setPosition(sf::Vector2f(roundResultPositions[i].first, roundResultPositions[i].second));     
+        tieText[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
+                                textRect.top  + textRect.height / 2.0f);                                        
+
+        winnerText[i].setPosition(sf::Vector2f(roundResultPositions[i].first, roundResultPositions[i].second));  
+        tieText[i].setPosition(sf::Vector2f(roundResultPositions[i].first + 46, roundResultPositions[i].second));   
     }
 }
 
@@ -246,13 +259,20 @@ void GameTable::activateGameRound() {
         winner = getRoundWinner(playerList, 0); 
         winnerNotYetDetermined = false; // Makes sure to do this only once.
         clock.restart();
-        mayPlayVictorySound = true;
+        if(winner.size() == 1) 
+            mayPlayVictorySound = true;
+        else
+            mayPlayTieSound = true;
     }
 
     if(mayPlayVictorySound && clock.getElapsedTime().asMilliseconds() > 1000)
-        declareWinner(winner[0]);
+        declareWinner();
 
-    if(mayDisplayRoundResults) 
+    if(mayPlayTieSound && clock.getElapsedTime().asMilliseconds() > 1000) {
+        declareTie();
+    }
+
+    if(mayDisplayWinnerText) 
         globalData->window.draw(winnerText[winner[0].number - 1]);
 
     if(mayDisplayTieText) {
@@ -265,10 +285,18 @@ void GameTable::activateGameRound() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::declareWinner(Player winner) {
+void GameTable::declareWinner() {
     globalData->gameSound.playSoundEffect("winner2.ogg");
-    mayDisplayRoundResults = true;
+    mayDisplayWinnerText = true;
     mayPlayVictorySound = false;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::declareTie() {
+    globalData->gameSound.playSoundEffect("tie.ogg");
+    mayDisplayTieText = true;
+    mayPlayTieSound = false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -280,8 +308,9 @@ void GameTable::displayTieCondition() {
 // -------------------------------------------------------------------------------------------------
 
 vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, short ith_card) {
+    playerList[3].hand[0].value = 14;
+    playerList[4].hand[0].value = 14;
 
-    vector<Player> winnerPool;
     short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
 
     // Check for ties. Re-play if there is a tie.
@@ -296,9 +325,8 @@ vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, 
     }    
 
     if(winnerPool.size() > 1) {
-        mayDisplayTieText = true;
-        displayTieCondition();
-        winnerPool = getRoundWinner(winnerPool, ++ith_card);
+        mayPlayTieSound = true;
+        // winnerPool = getRoundWinner(winnerPool, ++ith_card);
     }
 
     return winnerPool;
@@ -388,6 +416,15 @@ void GameTable::dealCardsToPlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList[i].hand = hands[i];
         playerList[i].numCardsInHand = hands[i].size();
+    }
+
+
+    // For testing. Delete when done.
+    for(auto i : cardDeck.deck) {
+        if(i.value == 14) {
+            playerList[3].hand[0] = i;
+            playerList[4].hand[0] = i;
+        }
     }
 }
 
