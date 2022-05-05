@@ -40,8 +40,9 @@ private:
     bool                       winnerNotYetDetermined = false;
     bool                       mayDisplayWinnerText   = false;
     bool                       mayDisplayTieText      = false;
-    bool                       mayPlayVictorySound    = false;
-    bool                       mayPlayTieSound        = false;
+    bool                       isAWinner              = false;
+    bool                       isATie                 = false;
+    bool                       forceTie               = true;
     
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
     float                      xMid, yMid;
@@ -72,6 +73,7 @@ private:
     void activateGameRound();
     void revealFaceUpCardsWithDelayOf(short delay);
     void drawCardsBacksAndNumbers();
+    void drawAllTableSprites();
     void playCardPlacementSound();
 
     short getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card);
@@ -253,34 +255,22 @@ void GameTable::activateGameRound() {
     if(mayPlayNextRound) 
         revealFaceUpCardsWithDelayOf(150);
 
-    drawCardsBacksAndNumbers();
-
     if(faceupCards == numberOfPlayers && winnerNotYetDetermined) {
         winner = getRoundWinner(playerList, 0); 
         winnerNotYetDetermined = false; // Makes sure to do this only once.
         clock.restart();
         if(winner.size() == 1) 
-            mayPlayVictorySound = true;
+            isAWinner = true;
         else
-            mayPlayTieSound = true;
+            isATie = true;
     }
 
-    if(mayPlayVictorySound && clock.getElapsedTime().asMilliseconds() > 1000)
+    if(isAWinner && clock.getElapsedTime().asMilliseconds() > 1000)
         declareWinner();
 
-    if(mayPlayTieSound && clock.getElapsedTime().asMilliseconds() > 1000) {
+    if(isATie && clock.getElapsedTime().asMilliseconds() > 1000) {
         declareTie();
     }
-
-    if(mayDisplayWinnerText) 
-        globalData->window.draw(winnerText[winner[0].number - 1]);
-
-    if(mayDisplayTieText) {
-        for(short i = 0; i < winner.size(); i++) {
-            globalData->window.draw(tieText[winner[i].number - 1]);
-        }
-    }
-    
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -288,7 +278,7 @@ void GameTable::activateGameRound() {
 void GameTable::declareWinner() {
     globalData->gameSound.playSoundEffect("winner2.ogg");
     mayDisplayWinnerText = true;
-    mayPlayVictorySound = false;
+    isAWinner = false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -296,7 +286,12 @@ void GameTable::declareWinner() {
 void GameTable::declareTie() {
     globalData->gameSound.playSoundEffect("tie.ogg");
     mayDisplayTieText = true;
-    mayPlayTieSound = false;
+    isATie = false;
+    clock.restart();
+    if(elapsed.asMilliseconds() > 2000) {
+        mayPlayNextRound = true;
+        globalData->eventHandler.cardWasClicked = false;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -325,7 +320,7 @@ vector<Player> GameTable::getRoundWinner(const vector<Player> competingPlayers, 
     }    
 
     if(winnerPool.size() > 1) {
-        mayPlayTieSound = true;
+        isATie = true;
         // winnerPool = getRoundWinner(winnerPool, ++ith_card);
     }
 
@@ -404,9 +399,23 @@ void GameTable::runGameLoop() {
         eventMonitor();
         globalData->window.clear(sf::Color(0, 90, 0));
         activateGameRound();
+        drawAllTableSprites();
         globalData->window.display();
     } 
 }   
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::drawAllTableSprites() {
+        drawCardsBacksAndNumbers();
+        if(mayDisplayWinnerText) globalData->window.draw(winnerText[winner[0].number - 1]);
+
+        if(mayDisplayTieText) {
+            for(short i = 0; i < winner.size(); i++) {
+                globalData->window.draw(tieText[winner[i].number - 1]);
+            }
+    }
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -418,12 +427,12 @@ void GameTable::dealCardsToPlayers() {
         playerList[i].numCardsInHand = hands[i].size();
     }
 
-
-    // For testing. Delete when done.
-    for(auto i : cardDeck.deck) {
-        if(i.value == 14) {
-            playerList[3].hand[0] = i;
-            playerList[4].hand[0] = i;
+    if(forceTie) {
+        for(auto i : cardDeck.deck) {
+            if(i.value == 14) {
+                playerList[3].hand[0] = i;
+                playerList[4].hand[0] = i;
+            }
         }
     }
 }
