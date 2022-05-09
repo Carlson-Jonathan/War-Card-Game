@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 using namespace std;
 
 #include "initializer.h"
@@ -21,7 +22,7 @@ public:
     bool    outOfGame = false;
     short   numCardsInHand;
 
-    vector<Card> hand;
+    vector<shared_ptr<Card>> hand;
 };
 
 #endif // PLAYER_H

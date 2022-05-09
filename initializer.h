@@ -42,7 +42,7 @@ public:
 
 	GameSound      gameSound;
 	EventHandler   eventHandler;
-	TextureManager textures;	
+	TextureManager textures;
 };
 
 #endif // INITIALIZER_H

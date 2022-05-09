@@ -4,6 +4,7 @@
 #define CARDDECK_H
 
 #include <iostream>
+#include <memory>
 #include "card.h"
 #include "miscellaneous.h"
 
@@ -18,11 +19,11 @@ public:
     CardDeck(Initializer & globalData);
     friend CardDeck_Test; // For unit testing
 
-	vector<Card>         deck;
-    vector<sf::Sprite>   cardBacks;
-    vector<vector<Card>> divideDeck  (short numberOfDecks);
-    void                 shuffleDeck ();
-    void                 printDeck   (vector<Card> deck);
+	vector<shared_ptr<Card>> deck;
+    vector<sf::Sprite>       cardBacks;
+    vector<vector<shared_ptr<Card>>> divideDeck (short numberOfDecks);
+    void                     shuffleDeck ();
+    void                     printDeck (vector<shared_ptr<Card>> deck);
 
 private:
 
@@ -50,22 +51,23 @@ CardDeck::CardDeck(Initializer & globalData) {
 
 // -------------------------------------------------------------------------------------------------
 
-vector<vector<Card>> CardDeck::divideDeck(short numberOfDecks) {
+vector<vector<shared_ptr<Card>>> CardDeck::divideDeck(short numberOfDecks) {
 
-    vector<vector<Card>> hands;
+    vector<vector<shared_ptr<Card>>> hands;
     short deckSizes = this->deck.size() / numberOfDecks;
     short next = 0;
 
     // Deal into even decks.
     for(short i = 0; i < numberOfDecks; i++) { 
         hands.push_back(
-            vector<Card>(this->deck.begin() + next, this->deck.begin() + deckSizes + next)
+            vector<shared_ptr<Card>>(this->deck.begin() + next, this->deck.begin() + deckSizes + next)
         );
         next += deckSizes;
     }            
 
     // Deal out left-over cards.
     for(short i = 0; i < deck.size() % deckSizes; i++) {
+
         hands[i].push_back(deck[i + (deckSizes * numberOfDecks)]);
     }
 
@@ -86,9 +88,9 @@ void CardDeck::shuffleDeck() {
 
 // -------------------------------------------------------------------------------------------------
 
-void CardDeck::printDeck(vector<Card> deck) {
+void CardDeck::printDeck(vector<shared_ptr<Card>> deck) {
     for(auto i : this->deck) {
-        cout << i.value << " of " << i.suite << endl;
+        cout << i->value << " of " << i->suite << endl;
     }
 }
 
@@ -100,7 +102,8 @@ void CardDeck::generateCardDeck() {
     }
 
     for(string i : this->cardNames) {
-        this->deck.push_back(Card(*globalData, i));
+        shared_ptr<Card> newCard = make_shared<Card>(*globalData, i);
+        this->deck.push_back(newCard);
     }
 }
 
