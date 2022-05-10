@@ -22,9 +22,10 @@ public:
 
 private:
 
-    short                      numberOfPlayers = 6;
-    short                      faceupCards = 0;
-    short                      timeElapsed;
+    short numberOfPlayers = 6;
+    short faceupCards = 0;
+    short timeElapsed = 0;
+    short tieRound = 0;
 
     Initializer*               globalData;
     CardDeck                   cardDeck; 
@@ -273,8 +274,10 @@ void GameTable::activateGameRound() {
         else
             fillWinnerPool(playerList, 0); 
 
-        if(winnerPool.size() > 1) 
+        if(winnerPool.size() > 1) {
             isATie = true;
+            tieRound++;
+        }
         else
             isATie = false;
 
@@ -285,7 +288,8 @@ void GameTable::activateGameRound() {
 
     if(mayDeclareRoundResults && timeElapsed > 1000) {
         if(isATie) {
-            declareTie();
+            globalData->gameSound.playSoundEffect("tie.ogg");
+            mayDisplayTieText = true;
             mayBreakTie = true;
         }
         else 
@@ -304,6 +308,8 @@ void GameTable::activateGameRound() {
             delay = 250;
 
             if(nextWinnerIndex >= winnerPool.size()) {
+                nextWinnerIndex = 0;
+                delay = 2500;
                 mayBreakTie = false;
                 hiPlayersNotYetDetermined = true;
             }
@@ -317,8 +323,8 @@ void GameTable::activateGameRound() {
 // Once
 void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     playNextCardOnDeck(player);
-    player->hand[0] = player->hand[1];
-
+    short ith_card = tieRound;
+    player->hand[0] = player->hand[ith_card]; // By doing this, I am destroying the card object for hand[0]. Need to do something else.
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -326,13 +332,6 @@ void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
 void GameTable::declareWinner() {
     globalData->gameSound.playSoundEffect("winner2.ogg");
     mayDisplayWinnerText = true;
-}
-
-// -------------------------------------------------------------------------------------------------
-// Once
-void GameTable::declareTie() {
-    globalData->gameSound.playSoundEffect("tie.ogg");
-    mayDisplayTieText = true;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -479,6 +478,14 @@ void GameTable::dealCardsToPlayers() {
                     playerList[i]->hand[j] = temp;
                 }
             }
+            // Double tie
+            for(short j = 0; j < playerList[i]->hand.size(); j++) {
+                if(playerList[i]->hand[j]->value == 13) {
+                    temp = playerList[i]->hand[1];
+                    playerList[i]->hand[1] = playerList[i]->hand[j];
+                    playerList[i]->hand[j] = temp;
+                }
+            }            
         }
     }
 }
