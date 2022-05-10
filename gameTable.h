@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "cardDeck.h"
 #include "initializer.h"
 #include "player.h"
@@ -28,12 +29,11 @@ private:
     Initializer*               globalData;
     CardDeck                   cardDeck; 
 
-    vector<Player>             playerList;
+    vector<shared_ptr<Player>> playerList;
     vector<pair<float, float>> cardPositions;
     vector<pair<float, float>> roundResultPositions;
     vector<jc::Sprite>         greenRectangles;
-    vector<Player*>            winnerPool;
-    vector<Player*>            winners;
+    vector<shared_ptr<Player>> winnerPool;
     vector<jc::Text>           handSizeNumbers;
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
@@ -75,14 +75,14 @@ private:
     void checkForMouseClickOnCard();
 
     void activateGameRound();
-    void revealFaceUpCardsWithDelayOf(short delay, vector<Player> & players);
+    void revealFaceUpCardsWithDelayOf(short delay);
     void drawCardsBacksAndNumbers();
     void drawAllTableSprites();
     void playCardPlacementSound();
 
-    short getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card);
+    short getHighestCardValuePlayed(vector<shared_ptr<Player>> competingPlayers, short ith_card);
     void displayTieCondition();
-    void getRoundWinner (vector<Player> competingPlayers, short ith_card);
+    void getRoundWinner(vector<shared_ptr<Player>> competingPlayers, short ith_card);
     void declareWinner();
     void setAndPlaceTieText();
     void declareTie();
@@ -90,9 +90,9 @@ private:
     void printAllPlayerStats();
 
 
-    void playNextCardOnDeck(Player & player);
+    void playNextCardOnDeck(shared_ptr<Player> player);
     void drawPlayerFaceUpCards();
-    void playTieBreakerCard(Player & player);
+    void playTieBreakerCard(shared_ptr<Player> player);
 };
 
 #endif // GAMETABLE_H
@@ -158,8 +158,8 @@ void GameTable::setCardPositions() {
     };
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        for(short j = 0; j < playerList[i].hand.size(); j++) {
-            playerList[i].hand[j]->cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
+        for(short j = 0; j < playerList[i]->hand.size(); j++) {
+            playerList[i]->hand[j]->cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
         }
     }
 
@@ -210,14 +210,14 @@ void GameTable::setAndPlaceDeckNumberText() {
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(50); 
         handSizeNumbers[i].setFillColor(sf::Color(255, 255, 255));
-        handSizeNumbers[i].setString(to_string(playerList[i].numCardsInHand));
+        handSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
 
         // Makes the center of the text box the position
         sf::FloatRect textRect = handSizeNumbers[0].getLocalBounds();
         handSizeNumbers[i].setOrigin(textRect.left + textRect.width  / 2.0f, 
                                         textRect.top  + textRect.height / 2.0f);
 
-        if(playerList[i].hand.size() < 10) 
+        if(playerList[i]->hand.size() < 10) 
             textPositions[i].first += 1;
 
         handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
@@ -262,7 +262,7 @@ void GameTable::setAndPlaceVictoryText() {
 void GameTable::activateGameRound() {
 
     if(mayPlayNextRound) 
-        revealFaceUpCardsWithDelayOf(150, playerList);
+        revealFaceUpCardsWithDelayOf(150);
 
     // Determine if there is a winner or a tie
     if(faceupCards == numberOfPlayers && winnerNotYetDetermined) {
@@ -289,7 +289,7 @@ void GameTable::activateGameRound() {
     static short delay = 2500;
     if(mayBreakTie && clock.getElapsedTime().asMilliseconds() > delay) {
         static short winnerPoolIndex = 0;
-        playTieBreakerCard(*winnerPool[winnerPoolIndex]);
+        playTieBreakerCard(winnerPool[winnerPoolIndex]);
         delay = 250;
         clock.restart();
         winnerPoolIndex++;
@@ -300,10 +300,11 @@ void GameTable::activateGameRound() {
 
 // -------------------------------------------------------------------------------------------------
 // Once
-void GameTable::playTieBreakerCard(Player & player) {
+void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     playNextCardOnDeck(player);
     cout << "Checkpoint 1" << endl;
-    // player.hand.erase(player.hand.begin() + 2);
+    // player.hand[0] = player.hand[1];
+    // cout << player.name << "'s card = " << player.hand[0]->cardName << endl;
     cout << "Checkpoint 2"<< endl;
 }
 
@@ -329,18 +330,18 @@ void GameTable::declareTie() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::getRoundWinner(vector<Player> competingPlayers, short ith_card) {
+void GameTable::getRoundWinner(vector<shared_ptr<Player>> competingPlayers, short ith_card) {
 
     short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
 
     for(short i = 0; i < competingPlayers.size(); i++) {
-        if(competingPlayers[i].outOfGame)
+        if(competingPlayers[i]->outOfGame)
             continue;
 
-        short currentCard = competingPlayers[i].hand[ith_card]->value;
+        short currentCard = competingPlayers[i]->hand[ith_card]->value;
 
         if(currentCard == highestCard) {
-            Player* playerPtr = &competingPlayers[i];
+            shared_ptr<Player> playerPtr = competingPlayers[i];
             winnerPool.push_back(playerPtr);
         }
     }    
@@ -351,14 +352,14 @@ void GameTable::getRoundWinner(vector<Player> competingPlayers, short ith_card) 
 
 // -------------------------------------------------------------------------------------------------
 
-short GameTable::getHighestCardValuePlayed(vector<Player> competingPlayers, short ith_card) {
+short GameTable::getHighestCardValuePlayed(vector<shared_ptr<Player>> competingPlayers, short ith_card) {
     short highestCard = 0;
 
     for(short i = 0; i < competingPlayers.size(); i++) {
-        if(playerList[i].outOfGame)
+        if(competingPlayers[i]->outOfGame)
             continue;
 
-        short currentCard = competingPlayers[i].hand[ith_card]->value;
+        short currentCard = competingPlayers[i]->hand[ith_card]->value;
         if(currentCard > highestCard)
             highestCard = currentCard;
     }
@@ -379,25 +380,25 @@ void GameTable::drawCardsBacksAndNumbers() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::revealFaceUpCardsWithDelayOf(short delay, vector<Player> & players) {
-    if(faceupCards >= players.size()) {
+void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
+    if(faceupCards >= playerList.size()) {
         winnerNotYetDetermined = true;
         mayPlayNextRound = false;
     }
 
-    if(elapsed.asMilliseconds() > 150 && faceupCards < players.size()) {
+    if(elapsed.asMilliseconds() > 150 && faceupCards < playerList.size()) {
         faceupCards++;
         clock.restart();
-        playNextCardOnDeck(players[faceupCards - 1]);
+        playNextCardOnDeck(playerList[faceupCards - 1]);
     }
 }
 
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::playNextCardOnDeck(Player & player) {
-    player.numCardsInHand--;
-    handSizeNumbers[player.number - 1].setString(to_string(player.numCardsInHand));
+void GameTable::playNextCardOnDeck(shared_ptr<Player> player) {
+    player->numCardsInHand--;
+    handSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
     playCardPlacementSound();
 }
 
@@ -406,7 +407,7 @@ void GameTable::playNextCardOnDeck(Player & player) {
 void GameTable::drawPlayerFaceUpCards() {
     for(short i = 0; i < numberOfPlayers; i++) {
         if(i < faceupCards) 
-            globalData->window.draw(playerList[i].hand[0]->cardSprite);
+            globalData->window.draw(playerList[i]->hand[0]->cardSprite);
     }
 }
 
@@ -421,9 +422,9 @@ void GameTable::playCardPlacementSound() {
 
 void GameTable::generatePlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        playerList.push_back(Player());
-        playerList[i].number = i + 1;
-        playerList[i].name = "Player " + to_string(i + 1);
+        playerList.push_back(make_shared<Player>());
+        playerList[i]->number = i + 1;
+        playerList[i]->name = "Player " + to_string(i + 1);
     }
 }
 
@@ -462,16 +463,15 @@ void GameTable::dealCardsToPlayers() {
     vector<vector<shared_ptr<Card>>> hands;
     hands = cardDeck.divideDeck(numberOfPlayers);
     for(short i = 0; i < numberOfPlayers; i++) {
-        playerList[i].hand = hands[i];
-        playerList[i].numCardsInHand = hands[i].size();
+        playerList[i]->hand = hands[i];
+        playerList[i]->numCardsInHand = hands[i].size();
     }
 
     if(forceTie) {
         for(auto i : cardDeck.deck) {
-            if(i->value == 14) {
-                playerList[3].hand[0] = i;
-                playerList[4].hand[0] = i;
-            }
+            if(i->value == 14 && playerList[0]->hand[0]->value < 14) 
+                playerList[0]->hand[0] = i;
+            playerList[1]->hand[0] = i;
         }
     }
 }
@@ -505,9 +505,9 @@ void GameTable::eventMonitor() {
 void GameTable::printAllPlayerStats() {
     for(short i = 0; i < numberOfPlayers; i++) {
         cout << "\n==============================\n   Player " << i + 1 << " (Hand size = " 
-                << playerList[i].hand.size() << ")\n==============================\n";
-        for(short j = 0; j < playerList[i].hand.size(); j++) {
-            cout << playerList[i].hand[j]->cardName << "\t  {" << cardPositions[i].first << ", " 
+                << playerList[i]->hand.size() << ")\n==============================\n";
+        for(short j = 0; j < playerList[i]->hand.size(); j++) {
+            cout << playerList[i]->hand[j]->cardName << "\t  {" << cardPositions[i].first << ", " 
                     << cardPositions[i].second << "}" << endl;
         }
     }
