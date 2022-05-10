@@ -44,7 +44,7 @@ private:
     bool                       mayDisplayTieText      = false;
     bool                       isAWinner              = false;
     bool                       isATie                 = false;
-    bool                       forceTie               = false;
+    bool                       forceTie               = true;
     bool                       mayGetNewTime          = true;
     bool                       mayBreakTie            = false;
     
@@ -290,11 +290,13 @@ void GameTable::activateGameRound() {
     if(mayBreakTie && clock.getElapsedTime().asMilliseconds() > delay) {
         static short winnerPoolIndex = 0;
         playTieBreakerCard(winnerPool[winnerPoolIndex]);
+        mayDisplayTieText = false;
         delay = 250;
         clock.restart();
         winnerPoolIndex++;
         if(winnerPoolIndex >= winnerPool.size())
             mayBreakTie = false;
+        
     }
 }
 
@@ -302,10 +304,8 @@ void GameTable::activateGameRound() {
 // Once
 void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     playNextCardOnDeck(player);
-    cout << "Checkpoint 1" << endl;
-    // player.hand[0] = player.hand[1];
-    // cout << player.name << "'s card = " << player.hand[0]->cardName << endl;
-    cout << "Checkpoint 2"<< endl;
+    player->hand[0] = player->hand[1];
+
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -465,13 +465,16 @@ void GameTable::dealCardsToPlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList[i]->hand = hands[i];
         playerList[i]->numCardsInHand = hands[i].size();
-    }
 
-    if(forceTie) {
-        for(auto i : cardDeck.deck) {
-            if(i->value == 14 && playerList[0]->hand[0]->value < 14) 
-                playerList[0]->hand[0] = i;
-            playerList[1]->hand[0] = i;
+        if(forceTie) {
+            shared_ptr<Card> temp = NULL;
+            for(short j = 0; j < playerList[i]->hand.size(); j++) {
+                if(playerList[i]->hand[j]->value == 14) {
+                    temp = playerList[i]->hand[0];
+                    playerList[i]->hand[0] = playerList[i]->hand[j];
+                    playerList[i]->hand[j] = temp;
+                }
+            }
         }
     }
 }
