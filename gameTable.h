@@ -24,7 +24,7 @@ private:
 
     short                      numberOfPlayers = 6;
     short                      faceupCards = 0;
-    short                      savedTime;
+    short                      timeElapsed;
 
     Initializer*               globalData;
     CardDeck                   cardDeck; 
@@ -38,15 +38,17 @@ private:
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
 
-    bool                       mayPlayNextRound       = false;
-    bool                       winnerNotYetDetermined = false;
-    bool                       mayDisplayWinnerText   = false;
-    bool                       mayDisplayTieText      = false;
-    bool                       isAWinner              = false;
-    bool                       isATie                 = false;
-    bool                       forceTie               = true;
-    bool                       mayGetNewTime          = true;
-    bool                       mayBreakTie            = false;
+    bool mayStartNewRound       = false;
+    bool allPlayersPlayedACard  = false;
+    bool mayDeclareRoundResults   = false;
+    bool hiPlayersNotYetDetermined = false;
+    bool mayDisplayWinnerText   = false;
+    bool mayDisplayTieText      = false;
+    bool isAWinner              = false;
+    bool isATie                 = false;
+    bool forceTie               = true;
+    bool mayGetNewTime          = true;
+    bool mayBreakTie            = false;
     
     string                     fontFile = "Fonts/Robusta-Regular.ttf";
     float                      xMid, yMid;
@@ -82,7 +84,7 @@ private:
 
     short getHighestCardValuePlayed(vector<shared_ptr<Player>> competingPlayers, short ith_card);
     void displayTieCondition();
-    void getRoundWinner(vector<shared_ptr<Player>> competingPlayers, short ith_card);
+    void fillWinnerPool(vector<shared_ptr<Player>> competingPlayers, short ith_card);
     void declareWinner();
     void setAndPlaceTieText();
     void declareTie();
@@ -260,43 +262,54 @@ void GameTable::setAndPlaceVictoryText() {
 // -------------------------------------------------------------------------------------------------
 // Looped
 void GameTable::activateGameRound() {
+    timeElapsed = clock.getElapsedTime().asMilliseconds();
 
-    if(mayPlayNextRound) 
-        revealFaceUpCardsWithDelayOf(150);
+    if(mayStartNewRound) revealFaceUpCardsWithDelayOf(150);
 
-    // Determine if there is a winner or a tie
-    if(faceupCards == numberOfPlayers && winnerNotYetDetermined) {
-        getRoundWinner(playerList, 0); 
-        winnerNotYetDetermined = false; // Makes sure to do this only once.
-        clock.restart();
-        if(winnerPool.size() == 1) 
-            isAWinner = true;
+    if(allPlayersPlayedACard && hiPlayersNotYetDetermined) {
+        static short ith_card = 1;
+        if(isATie)
+            fillWinnerPool(winnerPool, ith_card++); 
         else
+            fillWinnerPool(playerList, 0); 
+
+        if(winnerPool.size() > 1) 
             isATie = true;
+        else
+            isATie = false;
+
+        hiPlayersNotYetDetermined = false;
+        mayDeclareRoundResults = true;
+        clock.restart();
     }
 
-    // Display winner/tie text
-    if(isAWinner && clock.getElapsedTime().asMilliseconds() > 1000)
-        declareWinner();
+    if(mayDeclareRoundResults && timeElapsed > 1000) {
+        if(isATie) {
+            declareTie();
+            mayBreakTie = true;
+        }
+        else 
+            declareWinner();
 
-    if(isATie && clock.getElapsedTime().asMilliseconds() > 1000) {
-        declareTie();
+        mayDeclareRoundResults = false;
         clock.restart();
-        isATie = false;
-        mayBreakTie = true;
     }
 
-    static short delay = 2500;
-    if(mayBreakTie && clock.getElapsedTime().asMilliseconds() > delay) {
-        static short winnerPoolIndex = 0;
-        playTieBreakerCard(winnerPool[winnerPoolIndex]);
-        mayDisplayTieText = false;
-        delay = 250;
-        clock.restart();
-        winnerPoolIndex++;
-        if(winnerPoolIndex >= winnerPool.size())
-            mayBreakTie = false;
-        
+    if(mayBreakTie) {
+        static short delay = 2500;
+        if(timeElapsed > delay) {
+            mayDisplayTieText = false;
+            static short nextWinnerIndex = 0;
+            playTieBreakerCard(winnerPool[nextWinnerIndex++]);
+            delay = 250;
+
+            if(nextWinnerIndex >= winnerPool.size()) {
+                mayBreakTie = false;
+                hiPlayersNotYetDetermined = true;
+            }
+
+            clock.restart();
+        }
     }
 }
 
@@ -313,7 +326,6 @@ void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
 void GameTable::declareWinner() {
     globalData->gameSound.playSoundEffect("winner2.ogg");
     mayDisplayWinnerText = true;
-    isAWinner = false;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -321,33 +333,24 @@ void GameTable::declareWinner() {
 void GameTable::declareTie() {
     globalData->gameSound.playSoundEffect("tie.ogg");
     mayDisplayTieText = true;
-    isATie = false;
-
-    clock.restart();
-    if(elapsed.asMilliseconds() > 3000) {
-    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::getRoundWinner(vector<shared_ptr<Player>> competingPlayers, short ith_card) {
-
+void GameTable::fillWinnerPool(vector<shared_ptr<Player>> competingPlayers, short ith_card) {
+    winnerPool = {};
     short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
 
+    static int round = 1;
     for(short i = 0; i < competingPlayers.size(); i++) {
         if(competingPlayers[i]->outOfGame)
             continue;
 
         short currentCard = competingPlayers[i]->hand[ith_card]->value;
-
         if(currentCard == highestCard) {
-            shared_ptr<Player> playerPtr = competingPlayers[i];
-            winnerPool.push_back(playerPtr);
+            winnerPool.push_back(competingPlayers[i]);
         }
     }    
-
-    if(winnerPool.size() > 1) 
-        isATie = true;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -382,8 +385,9 @@ void GameTable::drawCardsBacksAndNumbers() {
 
 void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
     if(faceupCards >= playerList.size()) {
-        winnerNotYetDetermined = true;
-        mayPlayNextRound = false;
+        hiPlayersNotYetDetermined = true;
+        mayStartNewRound = false;
+        allPlayersPlayedACard = true;
     }
 
     if(elapsed.asMilliseconds() > 150 && faceupCards < playerList.size()) {
@@ -492,7 +496,7 @@ void GameTable::verifyNumberOfPlayers() {
 
 void GameTable::checkForMouseClickOnCard() {
     if(globalData->eventHandler.cardWasClicked) {
-        mayPlayNextRound = true;
+        mayStartNewRound = true;
         globalData->eventHandler.cardWasClicked = false;
     }
 }

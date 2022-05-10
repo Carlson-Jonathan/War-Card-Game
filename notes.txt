@@ -1,0 +1,6 @@
+##########################
+Segmentation Fault Finder:
+##########################
+1.) Run "gdb Main.out core"
+2.) Enter command "r"
+3.) "c" to continue, or "q" to quit.
