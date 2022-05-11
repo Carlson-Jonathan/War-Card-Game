@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <assert.h>
 #include "cardDeck.h"
 #include "initializer.h"
 #include "player.h"
@@ -35,6 +36,7 @@ private:
     vector<shared_ptr<Player>> playerList;
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
+    vector<shared_ptr<Card>>   prizePot;
     vector<jc::Sprite>         greenRectangles;
     vector<jc::Text>           handSizeNumbers;
     vector<jc::Text>           winnerText;
@@ -46,11 +48,10 @@ private:
     bool hiPlayersNotYetDetermined = false;
     bool mayDisplayWinnerText      = false;
     bool mayDisplayTieText         = false;
-    bool isAWinner                 = false;
     bool isATie                    = false;
-    bool forceTie                  = true;
-    bool mayGetNewTime             = true;
+    bool forceTie                  = false;
     bool mayBreakTie               = false;
+    bool mayConcludeRound          = false;
     
 	sf::Font  font; 
     jc::Text  headingText;
@@ -86,10 +87,17 @@ private:
     void breakTie();
     void playTieBreakerCard(shared_ptr<Player> player);
 
-    void printAllPlayerStats();
+    void gatherPlayedCards();
+    void popPlayedCardsFromPlayerDecks();
+    void awardPrizePotToVictor();
+    void concludeRound();
+    void clearFaceUpCards();
+    void setNewTopCards();
+
     void eventMonitor();
     void checkForMouseClickOnCard();
-
+    void printAllPlayerStats();
+    void printAllBooleanPermissions();
 };
 
 #endif // GAMETABLE_H
@@ -268,17 +276,20 @@ void GameTable::dealCardsToPlayers() {
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList[i]->hand = hands[i];
         playerList[i]->numCardsInHand = hands[i].size();
+        playerList[i]->topCard = playerList[i]->hand[0];
 
         if(forceTie) {
             shared_ptr<Card> temp = NULL;
             for(short j = 0; j < playerList[i]->hand.size(); j++) {
+                // Swap ace with top card
                 if(playerList[i]->hand[j]->value == 14) {
                     temp = playerList[i]->hand[0];
                     playerList[i]->hand[0] = playerList[i]->hand[j];
                     playerList[i]->hand[j] = temp;
+                    playerList[i]->topCard = playerList[i]->hand[0];
                 }
             }
-            // Double tie
+            // Double tie - swap king with 2nd from top card
             for(short j = 0; j < playerList[i]->hand.size(); j++) {
                 if(playerList[i]->hand[j]->value == 13) {
                     temp = playerList[i]->hand[1];
@@ -301,6 +312,77 @@ void GameTable::activateGameRound() {
     if(allPlayersPlayedACard && hiPlayersNotYetDetermined) determineWinnerOrTie();
     if(mayDeclareRoundResults && timeElapsed > 1000) declareRoundResults();
     if(mayBreakTie) breakTie();
+    if(mayConcludeRound && timeElapsed > 3000) concludeRound();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::concludeRound() {
+    mayConcludeRound = false;
+    mayDisplayWinnerText = false;
+    gatherPlayedCards();
+    awardPrizePotToVictor();
+    clearFaceUpCards();
+    setNewTopCards();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::gatherPlayedCards() {
+    short cardsPlayed = 0;
+    short totalCards = 0;
+
+    for(short i = 0; i < numberOfPlayers; i++) {
+        if(playerList[i]->isOutOfGame)
+            continue;
+        
+        cardsPlayed = playerList[i]->hand.size() - playerList[i]->numCardsInHand;
+        for(int j = 0; j < cardsPlayed; j++) {
+            prizePot.push_back(playerList[i]->hand[j]);
+            playerList[i]->hand.erase(playerList[i]->hand.begin());
+        }
+    }
+
+    // cout << "===== Prize Pot: =====" << endl;
+    // for(auto i : prizePot) {
+    //     cout << i->cardName << endl;
+    // }
+    // totalCards += prizePot.size();
+
+    // cout << "Total cards: " << totalCards << endl;
+
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::awardPrizePotToVictor() {
+    shared_ptr<Player> winner = winnerPool[0];
+    for(auto i : prizePot) {
+        winner->hand.push_back(i);
+    }
+    winner->numCardsInHand = winner->hand.size();
+    handSizeNumbers[winner->number - 1].setString(to_string(winner->numCardsInHand));
+    prizePot = {};
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::clearFaceUpCards() {
+    allPlayersPlayedACard = false;
+    faceupCards = 0;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setNewTopCards() {
+    for(short i = 0; i < numberOfPlayers; i++) {
+        if(playerList[i]->isOutOfGame)
+            continue;
+
+        playerList[i]->topCard = playerList[i]->hand[0];
+    }
+    // printAllPlayerStats();
+    // printAllBooleanPermissions();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -336,6 +418,7 @@ void GameTable::declareRoundResults() {
     else {
         globalData->gameSound.playSoundEffect("winner2.ogg");
         mayDisplayWinnerText = true;
+        mayConcludeRound = true;
     }
 
     mayDeclareRoundResults = false;
@@ -369,7 +452,7 @@ void GameTable::breakTie() {
 void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     playNextCardOnDeck(player);
     short ith_card = tieRound;
-    player->hand[0] = player->hand[ith_card]; // By doing this, I am destroying the card object for hand[0]. Need to do something else.
+    player->topCard = player->hand[ith_card]; 
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -380,7 +463,7 @@ void GameTable::fillWinnerPool(vector<shared_ptr<Player>> competingPlayers, shor
 
     static int round = 1;
     for(short i = 0; i < competingPlayers.size(); i++) {
-        if(competingPlayers[i]->outOfGame)
+        if(competingPlayers[i]->isOutOfGame)
             continue;
 
         short currentCard = competingPlayers[i]->hand[ith_card]->value;
@@ -396,7 +479,7 @@ short GameTable::getHighestCardValuePlayed(vector<shared_ptr<Player>> competingP
     short highestCard = 0;
 
     for(short i = 0; i < competingPlayers.size(); i++) {
-        if(competingPlayers[i]->outOfGame)
+        if(competingPlayers[i]->isOutOfGame)
             continue;
 
         short currentCard = competingPlayers[i]->hand[ith_card]->value;
@@ -438,7 +521,7 @@ void GameTable::playNextCardOnDeck(shared_ptr<Player> player) {
 void GameTable::drawPlayerFaceUpCards() {
     for(short i = 0; i < numberOfPlayers; i++) {
         if(i < faceupCards) 
-            globalData->window.draw(playerList[i]->hand[0]->cardSprite);
+            globalData->window.draw(playerList[i]->topCard->cardSprite);
     }
 }
 
@@ -503,11 +586,29 @@ void GameTable::eventMonitor() {
 
 void GameTable::printAllPlayerStats() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        cout << "\n==============================\n   Player " << i + 1 << " (Hand size = " 
-                << playerList[i]->hand.size() << ")\n==============================\n";
+        cout << "\n==============================\n\tPlayer " << i + 1 << "\n\tHand size = " 
+                << playerList[i]->hand.size() << "\n\tCards on deck = " << playerList[i]->numCardsInHand 
+                << "\tTop card: " << playerList[i]->topCard->cardName 
+                << "\n==============================\n";
         for(short j = 0; j < playerList[i]->hand.size(); j++) {
             cout << playerList[i]->hand[j]->cardName << "\t  {" << cardPositions[i].first << ", " 
                     << cardPositions[i].second << "}" << endl;
         }
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::printAllBooleanPermissions() {
+    cout << "============= Booleans =============" << endl;
+    cout << "mayStartNewRound: "          << mayStartNewRound          << endl;
+    cout << "allPlayersPlayedACard: "     << allPlayersPlayedACard     << endl;    
+    cout << "mayDeclareRoundResults: "    << mayDeclareRoundResults    << endl;   
+    cout << "hiPlayersNotYetDetermined: " << hiPlayersNotYetDetermined << endl; 
+    cout << "mayDisplayWinnerText: "      << mayDisplayWinnerText      << endl;
+    cout << "mayDisplayTieText: "         << mayDisplayTieText         << endl;
+    cout << "isATie: "                    << isATie                    << endl;
+    cout << "forceTie: "                  << forceTie                  << endl;
+    cout << "mayBreakTie: "               << mayBreakTie               << endl;
+    cout << "mayConcludeRound: "        << mayConcludeRound        << endl;
 }

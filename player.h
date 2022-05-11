@@ -15,14 +15,15 @@ public:
 
     Player () {}
 
-    Player* after     = NULL;
-    Player* before    = NULL;
-    string  name      = "Unset";
-    short   number    = 0;
-    bool    outOfGame = false;
+    Player* after       = NULL;
+    Player* before      = NULL;
+    string  name        = "Unset";
+    short   number      = 0;
+    bool    isOutOfGame = false;
     short   numCardsInHand;
 
     vector<shared_ptr<Card>> hand;
+    shared_ptr<Card> topCard;
 };
 
 #endif // PLAYER_H
