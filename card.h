@@ -24,7 +24,7 @@ public:
     string     suite = "unset";
  	sf::Sprite cardSprite; 
 
-    void printCardInfo(string cardName);
+    void printCardInfo();
 
 private:
 
@@ -55,11 +55,8 @@ Card::Card(Initializer & globalData, string cardName) {
 
 // -------------------------------------------------------------------------------------------------
 
-void Card::printCardInfo(string cardName) {
-    cout << "[]" << endl;
-    cout << cardName << endl;
-    cout << "   Value: " << this->value << endl;
-    cout << "   Suite: " << this->suite << endl;
+void Card::printCardInfo() {
+    cout << cardName << "\t" << this->value << " of " << this->suite << endl;
 }
 
 // -------------------------------------------------------------------------------------------------

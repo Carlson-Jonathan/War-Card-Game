@@ -34,7 +34,7 @@ public:
 
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
-	short frameRate           = 40;
+	short frameRate           = 20;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 
 	sf::RenderWindow window;
@@ -42,7 +42,7 @@ public:
 
 	GameSound      gameSound;
 	EventHandler   eventHandler;
-	TextureManager textures;	
+	TextureManager textures;
 };
 
 #endif // INITIALIZER_H
