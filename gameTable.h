@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <set>
 #include <assert.h>
 #include "cardDeck.h"
 #include "initializer.h"
@@ -27,6 +28,7 @@ private:
     short faceupCards = 0;
     short timeElapsed = 0;
     short tieRound = 0;
+    short tieBreakerIndex = 1;
 
     string fontFile = "Fonts/Robusta-Regular.ttf";
     Initializer* globalData;
@@ -42,6 +44,7 @@ private:
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
 
+    bool mayClickOnCard            = true;
     bool mayStartNewRound          = false;
     bool allPlayersPlayedACard     = false;
     bool mayDeclareRoundResults    = false;
@@ -49,7 +52,7 @@ private:
     bool mayDisplayWinnerText      = false;
     bool mayDisplayTieText         = false;
     bool isATie                    = false;
-    bool forceTie                  = false;
+    bool forceTie                  = true;
     bool mayBreakTie               = false;
     bool mayConcludeRound          = false;
     
@@ -92,12 +95,15 @@ private:
     void awardPrizePotToVictor();
     void concludeRound();
     void clearFaceUpCards();
-    void setNewTopCards();
+    void resetRoundVariables();
 
     void eventMonitor();
     void checkForMouseClickOnCard();
     void printAllPlayerStats();
     void printAllBooleanPermissions();
+    void printPrizePotContents();
+    void scanForDuplicateCards();
+    void verifyCardsEqualDeck();
 };
 
 #endif // GAMETABLE_H
@@ -153,12 +159,12 @@ void GameTable::setCardPositions() {
     this->yMid = -(globalData->screenHeight / 2.0);
 
     cardPositions = { 
-        {xMid + 200.f, yMid + 170.f}, // Player 1
-        {xMid +  50.f, yMid + 170.f}, // Player 2
-        {xMid - 100.f, yMid + 170.f}, // Player 3
-        {xMid + 200.f, yMid - 25.f},  // Player 4
-        {xMid +  50.f, yMid - 25.f},  // Player 5
-        {xMid - 100.f, yMid - 25.f}   // Player 6
+        {xMid + 200.0, yMid + 170.0}, // Player 1
+        {xMid +  50.0, yMid + 170.0}, // Player 2
+        {xMid - 100.0, yMid + 170.0}, // Player 3
+        {xMid + 200.0, yMid - 25.0},  // Player 4
+        {xMid +  50.0, yMid - 25.0},  // Player 5
+        {xMid - 100.0, yMid - 25.0}   // Player 6
     };
 
     // Apply screen positions to player card decks
@@ -168,12 +174,12 @@ void GameTable::setCardPositions() {
         }
     }
 
-    cardDeck.cardBacks[0].setOrigin(xMid + 200, yMid + 340);              
-    cardDeck.cardBacks[1].setOrigin(xMid +  50, yMid + 340);   
-    cardDeck.cardBacks[2].setOrigin(xMid - 100, yMid + 340);   
-    cardDeck.cardBacks[3].setOrigin(xMid + 200, yMid - 195);
-    cardDeck.cardBacks[4].setOrigin(xMid +  50, yMid - 195);
-    cardDeck.cardBacks[5].setOrigin(xMid - 100, yMid - 195);
+    cardDeck.cardBacks[0].setOrigin(xMid + 200.f, yMid + 340.f);              
+    cardDeck.cardBacks[1].setOrigin(xMid +  50.f, yMid + 340.f);   
+    cardDeck.cardBacks[2].setOrigin(xMid - 100.f, yMid + 340.f);   
+    cardDeck.cardBacks[3].setOrigin(xMid + 200.f, yMid - 195.f);
+    cardDeck.cardBacks[4].setOrigin(xMid +  50.f, yMid - 195.f);
+    cardDeck.cardBacks[5].setOrigin(xMid - 100.f, yMid - 195.f);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -323,7 +329,7 @@ void GameTable::concludeRound() {
     gatherPlayedCards();
     awardPrizePotToVictor();
     clearFaceUpCards();
-    setNewTopCards();
+    resetRoundVariables();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -338,26 +344,18 @@ void GameTable::gatherPlayedCards() {
         
         cardsPlayed = playerList[i]->hand.size() - playerList[i]->numCardsInHand;
         for(int j = 0; j < cardsPlayed; j++) {
-            prizePot.push_back(playerList[i]->hand[j]);
+            prizePot.push_back(playerList[i]->hand[0]);
             playerList[i]->hand.erase(playerList[i]->hand.begin());
         }
     }
-
-    // cout << "===== Prize Pot: =====" << endl;
-    // for(auto i : prizePot) {
-    //     cout << i->cardName << endl;
-    // }
-    // totalCards += prizePot.size();
-
-    // cout << "Total cards: " << totalCards << endl;
-
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::awardPrizePotToVictor() {
     shared_ptr<Player> winner = winnerPool[0];
-    for(auto i : prizePot) {
+    for(auto & i : prizePot) {
+        i->cardSprite.setOrigin(cardPositions[winner->number - 1].first, cardPositions[winner->number - 1].second);
         winner->hand.push_back(i);
     }
     winner->numCardsInHand = winner->hand.size();
@@ -374,24 +372,30 @@ void GameTable::clearFaceUpCards() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setNewTopCards() {
+void GameTable::resetRoundVariables() {
+
+    // Set player cards to display first card
     for(short i = 0; i < numberOfPlayers; i++) {
         if(playerList[i]->isOutOfGame)
             continue;
 
         playerList[i]->topCard = playerList[i]->hand[0];
     }
-    // printAllPlayerStats();
-    // printAllBooleanPermissions();
+
+    mayClickOnCard = true;
+
+    tieBreakerIndex = 1;
+    tieRound = 0;
+
+    scanForDuplicateCards();
+    // verifyCardsEqualDeck();
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::determineWinnerOrTie() {
-    static short ith_card = 1;
-
     if(isATie)
-        fillWinnerPool(winnerPool, ith_card++); 
+        fillWinnerPool(winnerPool, tieBreakerIndex++); 
     else
         fillWinnerPool(playerList, 0); 
 
@@ -461,7 +465,6 @@ void GameTable::fillWinnerPool(vector<shared_ptr<Player>> competingPlayers, shor
     winnerPool = {};
     short highestCard = getHighestCardValuePlayed(competingPlayers, ith_card);
 
-    static int round = 1;
     for(short i = 0; i < competingPlayers.size(); i++) {
         if(competingPlayers[i]->isOutOfGame)
             continue;
@@ -571,6 +574,7 @@ void GameTable::drawAllTableSprites() {
 void GameTable::checkForMouseClickOnCard() {
     if(globalData->eventHandler.cardWasClicked) {
         mayStartNewRound = true;
+        mayClickOnCard = false;
         globalData->eventHandler.cardWasClicked = false;
     }
 }
@@ -578,7 +582,7 @@ void GameTable::checkForMouseClickOnCard() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::eventMonitor() {
-    checkForMouseClickOnCard();
+    if(mayClickOnCard) checkForMouseClickOnCard();
     // Future events
 }
 
@@ -586,15 +590,17 @@ void GameTable::eventMonitor() {
 
 void GameTable::printAllPlayerStats() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        cout << "\n==============================\n\tPlayer " << i + 1 << "\n\tHand size = " 
-                << playerList[i]->hand.size() << "\n\tCards on deck = " << playerList[i]->numCardsInHand 
-                << "\tTop card: " << playerList[i]->topCard->cardName 
+        cout << "\n==============================\n\tPlayer " << i + 1 << "\n\tHand size: " 
+                << playerList[i]->hand.size() << "\n\tCards on deck: " << playerList[i]->numCardsInHand 
+                << "\n\tTop card: " << playerList[i]->topCard->cardName 
                 << "\n==============================\n";
         for(short j = 0; j < playerList[i]->hand.size(); j++) {
-            cout << playerList[i]->hand[j]->cardName << "\t  {" << cardPositions[i].first << ", " 
-                    << cardPositions[i].second << "}" << endl;
+            cout << playerList[i]->hand[j]->cardName << "\t{" 
+                 << playerList[i]->hand[j]->cardSprite.getOrigin().x << ", "
+                 << playerList[i]->hand[j]->cardSprite.getOrigin().y << "}\n";
         }
     }
+    cout << "========================================================\n";
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -602,6 +608,7 @@ void GameTable::printAllPlayerStats() {
 void GameTable::printAllBooleanPermissions() {
     cout << "============= Booleans =============" << endl;
     cout << "mayStartNewRound: "          << mayStartNewRound          << endl;
+    cout << "mayClickOnCard: "            << mayClickOnCard            << endl;
     cout << "allPlayersPlayedACard: "     << allPlayersPlayedACard     << endl;    
     cout << "mayDeclareRoundResults: "    << mayDeclareRoundResults    << endl;   
     cout << "hiPlayersNotYetDetermined: " << hiPlayersNotYetDetermined << endl; 
@@ -610,5 +617,56 @@ void GameTable::printAllBooleanPermissions() {
     cout << "isATie: "                    << isATie                    << endl;
     cout << "forceTie: "                  << forceTie                  << endl;
     cout << "mayBreakTie: "               << mayBreakTie               << endl;
-    cout << "mayConcludeRound: "        << mayConcludeRound        << endl;
+    cout << "mayConcludeRound: "          << mayConcludeRound          << endl;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::printPrizePotContents() {
+    cout << "=============== Prize Pot: ===============" << endl;
+    for(auto i : prizePot) {
+        cout << i->cardName << "\t" << i->cardSprite.getOrigin().x << ", " << i->cardSprite.getOrigin().y << endl;
+    }
+    cout << "Prize Pot size: " << prizePot.size() << endl;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::scanForDuplicateCards() {
+    set<string> deckChecker;
+    short beforeSize, afterSize;
+    for(short i = 0; i < numberOfPlayers; i++) {
+        for(short j = 0; j < playerList[i]->hand.size(); j++) {
+            beforeSize = deckChecker.size();
+            deckChecker.insert(playerList[i]->hand[j]->cardName);
+            afterSize = deckChecker.size();
+            if(beforeSize == afterSize) {
+                cout << "ERROR: Duplicate cards detected starting with " << playerList[i]->hand[j]->cardName << endl;
+                exit(139);
+            }
+        }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::verifyCardsEqualDeck() {
+    vector<shared_ptr<Card>> completeList = {};
+    for(short i = 0; i < numberOfPlayers; i++) {
+        for(short j = 0; j < playerList[i]->hand.size(); j++) {
+            completeList.push_back(playerList[i]->hand[j]);
+            sort(completeList.begin(), completeList.end());
+        }
+    }
+
+    for(auto i : completeList) {
+        cout << i->cardName << endl;
+    }
+
+    cout << "Complete List size: " << completeList.size() << endl;
+    // sort(cardDeck.deck.begin(), cardDeck.deck.end());
+    // if(completeList != cardDeck.deck) {
+    //     cout << "ERROR: Overall card deck has been altered." << endl;
+    //     exit(139);
+    // }
 }

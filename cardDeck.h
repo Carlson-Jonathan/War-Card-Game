@@ -27,6 +27,9 @@ public:
     void                     shuffleDeck ();
     void                     printDeck (vector<shared_ptr<Card>> deck);
 
+    friend bool operator<(const Card & l, const Card & r);
+    friend bool operator>(const Card & l, const Card & r);
+
 private:
 
     short          numberOfCardBacks = 6;
@@ -117,4 +120,20 @@ void CardDeck::generateCardBacks(short numberOfBacks) {
         cardBack.setTexture(globalData->textures.textures["cardBack"]);
         this->cardBacks.push_back(cardBack);
     }
+}
+
+void sortDeck() {
+    
+}
+
+// -------------------------------------------------------------------------------------------------
+
+bool operator<(const Card & l, const Card & r) {
+    return l.cardName < r.cardName;
+}
+
+// -------------------------------------------------------------------------------------------------
+
+bool operator>(const Card & l, const Card & r) {
+    return l.cardName > r.cardName;
 }
