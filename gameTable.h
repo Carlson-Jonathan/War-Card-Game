@@ -52,7 +52,7 @@ private:
     bool mayDisplayWinnerText      = false;
     bool mayDisplayTieText         = false;
     bool isATie                    = false;
-    bool forceTie                  = true;
+    bool forceTie                  = false;
     bool mayBreakTie               = false;
     bool mayConcludeRound          = false;
     
@@ -96,6 +96,7 @@ private:
     void concludeRound();
     void clearFaceUpCards();
     void resetRoundVariables();
+    void removeDefeatedPlayers();
 
     void eventMonitor();
     void checkForMouseClickOnCard();
@@ -330,6 +331,16 @@ void GameTable::concludeRound() {
     awardPrizePotToVictor();
     clearFaceUpCards();
     resetRoundVariables();
+    removeDefeatedPlayers();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::removeDefeatedPlayers() {
+    for(auto i : playerList) {
+        if(i->numCardsInHand < 1)
+            i->isOutOfGame = true;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -504,8 +515,11 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
 
     if(elapsed.asMilliseconds() > 150 && faceupCards < playerList.size()) {
         faceupCards++;
-        clock.restart();
-        playNextCardOnDeck(playerList[faceupCards - 1]);
+        shared_ptr<Player> currentPlayer = playerList[faceupCards - 1];
+        if(!currentPlayer->isOutOfGame) {
+            clock.restart();
+            playNextCardOnDeck(playerList[faceupCards - 1]);
+        }
     }
 }
 
@@ -515,6 +529,9 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
 void GameTable::playNextCardOnDeck(shared_ptr<Player> player) {
     player->numCardsInHand--;
     handSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
+    if(player->numCardsInHand < 1) 
+        handSizeNumbers[player->number - 1].setString("Out");
+    centerTextAlignment(handSizeNumbers[player->number - 1]);
     short randNum = Miscellaneous::generateRandomNumber(2);
     globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
 }
@@ -533,7 +550,8 @@ void GameTable::drawPlayerFaceUpCards() {
 void GameTable::drawCardsBacksAndNumbers() {
     for(short i = 0; i < numberOfPlayers; i++) {
         globalData->window.draw(greenRectangles[i]);
-        globalData->window.draw(cardDeck.cardBacks[i]);
+        if(playerList[i]->numCardsInHand)
+            globalData->window.draw(cardDeck.cardBacks[i]);
         globalData->window.draw(handSizeNumbers[i]);
         elapsed = clock.getElapsedTime();
     }
