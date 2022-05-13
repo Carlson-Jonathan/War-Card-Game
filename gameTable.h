@@ -38,6 +38,7 @@ private:
     float xMid, yMid;
 
     vector<shared_ptr<Player>> playerList;
+    vector<shared_ptr<Player>> activePlayerList;
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
@@ -80,6 +81,7 @@ private:
     void dealCardsToPlayers();    
     void drawCardsBacksAndNumbers();
     void drawAllTableSprites();
+    vector<short> getActivePlayerIndecies();
 
     void activateGameRound();
     void revealFaceUpCardsWithDelayOf(short delay);
@@ -106,6 +108,7 @@ private:
     void printAllPlayerStats();
     void printAllBooleanPermissions();
     void printPrizePotContents();
+    void printPlayerMove(shared_ptr<Player> player);
     void scanForDuplicateCards();
     void verifyCardsEqualDeck();
     void kickPlayer(short playerNumber);
@@ -128,6 +131,11 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     setAndPlaceVictoryText();
     setGreenRectanglePositions();
     setAndPlaceDeckNumberText();
+    if(mayKickPlayer) {
+        // kickPlayer(1);
+        // kickPlayer(2);
+        // kickPlayer(6);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -278,6 +286,7 @@ void GameTable::generatePlayers() {
         playerList[i]->number = i + 1;
         playerList[i]->name = "Player " + to_string(i + 1);
     }
+    activePlayerList = playerList;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -291,7 +300,6 @@ void GameTable::dealCardsToPlayers() {
         playerList[i]->topCard = playerList[i]->hand[0];
 
         if(mayForceTie) forceTie(playerList[i]); 
-        // if(mayKickPlayer) kickPlayer(4);
     }
 }
 
@@ -304,7 +312,6 @@ void GameTable::activateGameRound() {
 
     if(mayStartNewRound) revealFaceUpCardsWithDelayOf(150);
     if(allPlayersPlayedACard && hiPlayersNotYetDetermined) determineWinnerOrTie();
-
     if(mayDeclareRoundResults && timeElapsed > 1000) declareRoundResults();
     if(mayBreakTie) breakTie();
     if(mayConcludeRound && timeElapsed > 3000) concludeRound();
@@ -325,9 +332,11 @@ void GameTable::concludeRound() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::removeDefeatedPlayers() {
-    for(auto i : playerList) {
-        if(i->numCardsInHand < 1 && !i->isOutOfGame) {
-            i->isOutOfGame = true;
+    for(short i = 0; i < activePlayerList.size(); i++) {
+        shared_ptr<Player> player = playerList[i];
+        if(player->numCardsInHand < 1 && !player->isOutOfGame) {
+            player->isOutOfGame = true;
+            activePlayerList.erase(activePlayerList.begin() + i);
             activePlayers--;
         }
     }
@@ -460,6 +469,7 @@ void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     adjustHandSizeNumber(player);
     short ith_card = tieRound;
     player->topCard = player->hand[ith_card]; 
+    printPlayerMove(player);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -499,27 +509,33 @@ short GameTable::getHighestCardValuePlayed(vector<shared_ptr<Player>> competingP
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
-    if(faceupCards >= activePlayers) {
+    vector<short> activePlayerIndecies = getActivePlayerIndecies();
+
+    // Stops this function from repeating after x loops.
+    if(faceupCards >= activePlayerIndecies.size()) {
         hiPlayersNotYetDetermined = true;
         mayStartNewRound = false;
         allPlayersPlayedACard = true;
     }
 
-    if(elapsed.asMilliseconds() > 150 && faceupCards < activePlayers) {
+    // Do the animation of placing cards as long as less than x cards have been placed.
+    if(elapsed.asMilliseconds() > 150 && faceupCards < activePlayerIndecies.size()) {
         faceupCards++;
-        activePlayerNum++;
-        cout << "Faceup cards: " << faceupCards << endl;
-        cout << "Active player number : " << activePlayerNum << endl;
-        if(playerList[faceupCards - 1]->isOutOfGame)
-            activePlayerNum++;
 
-        shared_ptr<Player> currentPlayer = playerList[activePlayerNum - 1];
+        shared_ptr<Player> currentPlayer = playerList[activePlayerIndecies[faceupCards - 1]];
 
         clock.restart();
         adjustHandSizeNumber(currentPlayer);
+        printPlayerMove(currentPlayer);
+
+        // For debugging
+        cout << "Faceup cards: " << faceupCards << " "
+             << "activePlayerIndecies: (#" << activePlayerIndecies.size() << ") {";
+        for(auto i : activePlayerIndecies)
+            cout << i << ", ";
+        cout << "}" << endl;
     }
 }
-
 
 // -------------------------------------------------------------------------------------------------
 
@@ -530,18 +546,30 @@ void GameTable::adjustHandSizeNumber(shared_ptr<Player> player) {
     if(player->numCardsInHand < 1) 
         handSizeNumbers[player->number - 1].setString("Out");
     centerTextAlignment(handSizeNumbers[player->number - 1]);
+
     short randNum = Miscellaneous::generateRandomNumber(2);
     globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
 }
 
 // -------------------------------------------------------------------------------------------------
-
+// Loops always
 void GameTable::drawPlayerFaceUpCards() {
-    for(short i = 0; i < numberOfPlayers; i++) {
-        if(i < activePlayerNum) 
-            if(!playerList[i]->isOutOfGame)
-                globalData->window.draw(playerList[i]->topCard->cardSprite);
+    vector<short> activePlayerIndecies = getActivePlayerIndecies();
+    for(short i = 0; i < faceupCards; i++) {
+        if(i < activePlayerIndecies.size()) 
+            globalData->window.draw(playerList[activePlayerIndecies[i]]->topCard->cardSprite);
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+vector<short> GameTable::getActivePlayerIndecies() {
+    vector<short> activePlayerIndecies = {};
+    for(auto i : playerList)
+        if(!i->isOutOfGame)
+            activePlayerIndecies.push_back(i->number - 1);
+
+    return activePlayerIndecies;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -670,6 +698,10 @@ void GameTable::scanForDuplicateCards() {
 void GameTable::kickPlayer(short playerNumber) {
     playerList[playerNumber - 1]->isOutOfGame = true;
     activePlayers--;
+    // activePlayerList.erase(activePlayerList.begin() + playerNumber - 1); // Must erase from end to begin for this to work.
+    handSizeNumbers[playerNumber - 1].setString("Kicked");
+    centerTextAlignment(handSizeNumbers[playerNumber - 1]);
+
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -693,4 +725,11 @@ void GameTable::forceTie(shared_ptr<Player> player) {
             player->hand[i] = temp;
         }
     }            
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::printPlayerMove(shared_ptr<Player> player) {
+    cout << player->name << " Active: " << activePlayerNum << " is out: " << player->isOutOfGame 
+         << " Cards on deck: " << player->numCardsInHand << "\t" << player->topCard->cardName << endl; 
 }
