@@ -25,12 +25,15 @@ public:
 private:
 
     short numberOfPlayers = 6;
-    short activePlayers = numberOfPlayers;
     short activePlayerNum = 0;
     short faceupCards = 0;
     short timeElapsed = 0;
     short tieRound = 0;
     short tieBreakerIndex = 1;
+    short placementDelay = 150;
+    short resultsDelay = 1000;
+    short conclusionDelay = 3000;
+    short tieDelay = 2500;
 
     string fontFile = "Fonts/Robusta-Regular.ttf";
     Initializer* globalData;
@@ -38,7 +41,6 @@ private:
     float xMid, yMid;
 
     vector<shared_ptr<Player>> playerList;
-    vector<shared_ptr<Player>> activePlayerList;
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
@@ -47,6 +49,7 @@ private:
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
 
+    bool autoClick                 = false;
     bool mayClickOnCard            = true;
     bool mayStartNewRound          = false;
     bool allPlayersPlayedACard     = false;
@@ -71,6 +74,7 @@ private:
     void setHeadingText();
     void setAndPlaceVictoryText();
     void setCardPositions();
+    void setGameSpeed(short speed);
     void setGreenRectanglePositions();
     void setAndPlaceDeckNumberText();
     void setAndPlaceTieText();
@@ -93,6 +97,7 @@ private:
     void declareRoundResults();
     void determineWinnerOrTie();
     void breakTie();
+    void breakTieOnLastCard();
     void playTieBreakerCard(shared_ptr<Player> player);
 
     void gatherPlayedCards();
@@ -125,6 +130,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     this->globalData = &globalData;
     verifyNumberOfPlayers();
     generatePlayers();
+    setGameSpeed(0);
     dealCardsToPlayers();
     setFontFamily();
     setCardPositions();
@@ -194,6 +200,22 @@ void GameTable::setCardPositions() {
     cardDeck.cardBacks[3].setOrigin(xMid + 200.f, yMid - 195.f);
     cardDeck.cardBacks[4].setOrigin(xMid +  50.f, yMid - 195.f);
     cardDeck.cardBacks[5].setOrigin(xMid - 100.f, yMid - 195.f);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setGameSpeed(short speed) {
+
+    // Speeds (slow to fast)     0     1     2     3     4     5
+    short placementDelay[]  = { 25,   50,  100,  150,  200,   250};
+    short resultsDelay[]    = {166,  333,  666, 1000, 1333,  1666};
+    short conclusionDelay[] = {500, 1000, 2000, 3000, 4000,  5000};
+    short tieDelay[]        = {312,  625, 1250, 2500, 5000, 10000};
+
+    this->placementDelay  = placementDelay[speed];
+    this->resultsDelay    = resultsDelay[speed];
+    this->conclusionDelay = conclusionDelay[speed];
+    this->tieDelay        = tieDelay[speed];
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -286,7 +308,6 @@ void GameTable::generatePlayers() {
         playerList[i]->number = i + 1;
         playerList[i]->name = "Player " + to_string(i + 1);
     }
-    activePlayerList = playerList;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -310,11 +331,11 @@ void GameTable::dealCardsToPlayers() {
 void GameTable::activateGameRound() {
     timeElapsed = clock.getElapsedTime().asMilliseconds();
 
-    if(mayStartNewRound) revealFaceUpCardsWithDelayOf(150);
+    if(mayStartNewRound) revealFaceUpCardsWithDelayOf(placementDelay);
     if(allPlayersPlayedACard && hiPlayersNotYetDetermined) determineWinnerOrTie();
-    if(mayDeclareRoundResults && timeElapsed > 1000) declareRoundResults();
+    if(mayDeclareRoundResults && timeElapsed > resultsDelay) declareRoundResults();
     if(mayBreakTie) breakTie();
-    if(mayConcludeRound && timeElapsed > 3000) concludeRound();
+    if(mayConcludeRound && timeElapsed > conclusionDelay) concludeRound();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -332,12 +353,11 @@ void GameTable::concludeRound() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::removeDefeatedPlayers() {
-    for(short i = 0; i < activePlayerList.size(); i++) {
-        shared_ptr<Player> player = playerList[i];
+    vector<short> activePlayersIndecies = getActivePlayerIndecies();
+    for(short i = 0; i < activePlayersIndecies.size(); i++) {
+        shared_ptr<Player> player = playerList[activePlayersIndecies[i]];
         if(player->numCardsInHand < 1 && !player->isOutOfGame) {
             player->isOutOfGame = true;
-            activePlayerList.erase(activePlayerList.begin() + i);
-            activePlayers--;
         }
     }
 }
@@ -444,17 +464,25 @@ void GameTable::declareRoundResults() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::breakTie() {
-    static short delay = 2500;
+    // 1 or more players tie on their last card
+    for(auto i : winnerPool) {
+        if(!i->hand[tieRound]) { // There is no card after the current card played
+            breakTieOnLastCard();
+            return;
+        }
+    }
 
+    static short delay = tieDelay;
     if(timeElapsed > delay) {
         mayDisplayTieText = false;
         static short nextWinnerIndex = 0;
         playTieBreakerCard(winnerPool[nextWinnerIndex++]);
-        delay = 250;
+        delay = tieDelay / 10;
+        cout << delay << endl;
 
         if(nextWinnerIndex >= winnerPool.size()) {
             nextWinnerIndex = 0;
-            delay = 2500;
+            delay = tieDelay;
             mayBreakTie = false;
             hiPlayersNotYetDetermined = true;
         }
@@ -465,11 +493,23 @@ void GameTable::breakTie() {
 
 // -------------------------------------------------------------------------------------------------
 
+void GameTable::breakTieOnLastCard() {
+    cout << "breakTieOnLastCard() called because someone tied on their last card." << endl;
+    // 2-way tie - left player is out
+    // 2-way tie - right player is out
+    // 2-way tie - both players are out
+    // 3-way tie - 1 or more players are out
+    // #-way tie - all players are out.
+
+}
+
+// -------------------------------------------------------------------------------------------------
+
 void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     adjustHandSizeNumber(player);
     short ith_card = tieRound;
     player->topCard = player->hand[ith_card]; 
-    printPlayerMove(player);
+    // printPlayerMove(player);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -519,21 +559,21 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
     }
 
     // Do the animation of placing cards as long as less than x cards have been placed.
-    if(elapsed.asMilliseconds() > 150 && faceupCards < activePlayerIndecies.size()) {
+    if(elapsed.asMilliseconds() > delay && faceupCards < activePlayerIndecies.size()) {
         faceupCards++;
 
         shared_ptr<Player> currentPlayer = playerList[activePlayerIndecies[faceupCards - 1]];
 
         clock.restart();
         adjustHandSizeNumber(currentPlayer);
-        printPlayerMove(currentPlayer);
+        // printPlayerMove(currentPlayer);
 
         // For debugging
-        cout << "Faceup cards: " << faceupCards << " "
-             << "activePlayerIndecies: (#" << activePlayerIndecies.size() << ") {";
-        for(auto i : activePlayerIndecies)
-            cout << i << ", ";
-        cout << "}" << endl;
+        // cout << "Faceup cards: " << faceupCards << " "
+        //      << "activePlayerIndecies: (#" << activePlayerIndecies.size() << ") {";
+        // for(auto i : activePlayerIndecies)
+        //     cout << i << ", ";
+        // cout << "}" << endl;
     }
 }
 
@@ -576,8 +616,9 @@ vector<short> GameTable::getActivePlayerIndecies() {
 
 void GameTable::drawCardsBacksAndNumbers() {
     for(short i = 0; i < numberOfPlayers; i++) {
+        vector<short> activePlayerIndecies = getActivePlayerIndecies();
         globalData->window.draw(greenRectangles[i]);
-        if(playerList[i]->numCardsInHand)
+        if(playerList[i]->numCardsInHand > 0)
             globalData->window.draw(cardDeck.cardBacks[i]);
         globalData->window.draw(handSizeNumbers[i]);
         elapsed = clock.getElapsedTime();
@@ -697,11 +738,8 @@ void GameTable::scanForDuplicateCards() {
 // The player will still be part of the game, but considered out of cards (for debugging).
 void GameTable::kickPlayer(short playerNumber) {
     playerList[playerNumber - 1]->isOutOfGame = true;
-    activePlayers--;
-    // activePlayerList.erase(activePlayerList.begin() + playerNumber - 1); // Must erase from end to begin for this to work.
     handSizeNumbers[playerNumber - 1].setString("Kicked");
     centerTextAlignment(handSizeNumbers[playerNumber - 1]);
-
 }
 
 // -------------------------------------------------------------------------------------------------
