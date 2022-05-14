@@ -22,7 +22,7 @@ public:
     GameTable(Initializer & globalData);
     void runGameLoop();
 
-    short gameSpeed       = 0;
+    short gameSpeed       = 3;
     short numberOfPlayers = 6;
     bool  autoClick       = true;
 
@@ -64,10 +64,11 @@ private:
     bool gameOver                  = false;
 
     // For debugging:
-    bool mayKickPlayer    = false;
-    bool mayForceTie      = false;
-    bool testGameEnding   = false;
-    bool testLastCardTie  = false;
+    bool mayKickPlayer         = false;
+    bool mayForceTie           = false;
+    bool mayTestGameEnding     = false;
+    bool testDoubleLastCardTie = false;
+    bool mayTestLastCardTie    = false;
     
 	sf::Font  font; 
     jc::Text  headingText;
@@ -103,7 +104,7 @@ private:
     void declareRoundResults();
     void determineWinnerOrTie();
     void breakTie();
-    void breakTieOnLastCard();
+    void breakTieOnLastCard(shared_ptr<Player> player);
     void playTieBreakerCard(shared_ptr<Player> player);
 
     void gatherPlayedCards();
@@ -125,6 +126,8 @@ private:
     void verifyCardsEqualDeck();
     void kickPlayer(short playerNumber);
     void forceTie(shared_ptr<Player> player);
+    void testGameEnding();
+    void testSingleLastCardTie(); 
 };
 
 #endif // GAMETABLE_H
@@ -313,6 +316,11 @@ void GameTable::generatePlayers() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::dealCardsToPlayers() {
+    if(mayTestLastCardTie) {
+        testSingleLastCardTie();
+        return;
+    }
+
     vector<vector<shared_ptr<Card>>> hands;
     hands = cardDeck.divideDeck(numberOfPlayers);
     for(short i = 0; i < numberOfPlayers; i++) {
@@ -323,19 +331,51 @@ void GameTable::dealCardsToPlayers() {
         if(mayForceTie) forceTie(playerList[i]); 
     }
 
-    if(testLastCardTie) playerList[0]->hand = playerList[1]->hand;
-    if(testGameEnding) {
-        playerList[0]->hand = {};
-        for(auto i : playerList[0]->hand) {
-            if(i->value == 2)
-                playerList[1]->hand.push_back(i);
+    if(testDoubleLastCardTie) playerList[0]->hand = playerList[1]->hand;
+    if(mayTestGameEnding) testGameEnding();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::testSingleLastCardTie() {
+
+    playerList[0]->hand = {};
+    playerList[1]->hand = {};
+
+    for(auto & i : cardDeck.deck) {
+        if(i->value == 10) {
+            playerList[0]->hand.push_back(i);
+            break;
         }
     }
 
+    short pass = 2;
+    for(auto & i : cardDeck.deck) {
+        if(i->value == 10 && !pass--) {
+            playerList[1]->hand.push_back(i);
+            break;
+        }
+    }
+
+    playerList[1]->hand.push_back(cardDeck.deck[9]);
+    playerList[0]->numCardsInHand = 1;
+    playerList[1]->numCardsInHand = 2;
+    playerList[0]->topCard = playerList[0]->hand[0];
+    playerList[1]->topCard = playerList[1]->hand[0];
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::testGameEnding() {
+    playerList[0]->hand = {};
+    for(auto i : playerList[0]->hand) {
+        if(i->value == 2)
+            playerList[1]->hand.push_back(i);
+    }  
 }
 
 // =================================================================================================
-//                                          Game Mechanics
+// ======================================== Game Mechanics =========================================
 // =================================================================================================
 
 void GameTable::activateGameRound() {
@@ -371,7 +411,6 @@ void GameTable::checkForGameWinner() {
     }
     if(numPlayersStillInGame == 1)
         gameOver = true;
-
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -440,9 +479,6 @@ void GameTable::resetRoundVariables() {
     mayClickOnCard = true;
     tieBreakerIndex = 1;
     tieRound = 0;
-
-    scanForDuplicateCards();
-    // verifyCardsEqualDeck();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -486,14 +522,24 @@ void GameTable::declareRoundResults() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::breakTie() {
-    // 1 or more players tie on their last card
-    for(auto i : winnerPool) {
-        if(!i->hand[tieRound]) { // There is no card after the current card played
-            breakTieOnLastCard();
-            return;
+
+    // Called when a player ties on their last card and cannot break it with another card.
+    for(short i = 0; i < winnerPool.size(); i++) {
+        if(!winnerPool[i]->numCardsInHand) { 
+            // cout << winnerPool[i]->name << " tied on their last card! (Please don't Seg fault!)" << endl;
+            winnerPool.erase(winnerPool.begin() + i);
+
+            if(winnerPool.size() == 1) {
+                mayDisplayTieText = false;
+                mayDeclareRoundResults = true;
+                isATie = false;
+                mayBreakTie = false;
+                return;
+            }
         }
     }
 
+    // Default tie breaker. Iterates tie player's card to next in hand, then send back through loop.
     static short delay = tieDelay;
     if(timeElapsed > delay) {
         mayDisplayTieText = false;
@@ -514,14 +560,20 @@ void GameTable::breakTie() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::breakTieOnLastCard() {
-    cout << "breakTieOnLastCard() called because someone tied on their last card." << endl;
-    // 2-way tie - left player is out
-    // 2-way tie - right player is out
-    // 2-way tie - both players are out
-    // 3-way tie - 1 or more players are out
-    // #-way tie - all players are out.
+void GameTable::breakTieOnLastCard(shared_ptr<Player> player) {
+    // mayDisplayTieText = false;
+    // mayDeclareRoundResults = true;
+    // isATie = false;
+    // mayBreakTie = false;
 
+    cout << player->name << " played their last card and it was a tie! (Please don't crash!)" << endl;
+    printAllPlayerStats();
+
+    // Strip player from winnerPool
+    for(short i = 0; i < winnerPool.size(); i++) {
+        if(winnerPool[i]->number = player->number)
+            winnerPool.erase(winnerPool.begin() + i);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -530,7 +582,6 @@ void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
     adjustHandSizeNumber(player);
     short ith_card = tieRound;
     player->topCard = player->hand[ith_card]; 
-    // printPlayerMove(player);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -582,19 +633,9 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
     // Do the animation of placing cards as long as less than x cards have been placed.
     if(elapsed.asMilliseconds() > delay && faceupCards < activePlayerIndecies.size()) {
         faceupCards++;
-
         shared_ptr<Player> currentPlayer = playerList[activePlayerIndecies[faceupCards - 1]];
-
         clock.restart();
         adjustHandSizeNumber(currentPlayer);
-        // printPlayerMove(currentPlayer);
-
-        // For debugging
-        // cout << "Faceup cards: " << faceupCards << " "
-        //      << "activePlayerIndecies: (#" << activePlayerIndecies.size() << ") {";
-        // for(auto i : activePlayerIndecies)
-        //     cout << i << ", ";
-        // cout << "}" << endl;
     }
 }
 
