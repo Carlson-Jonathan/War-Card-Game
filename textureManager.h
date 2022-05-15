@@ -26,6 +26,7 @@ private:
 	sf::Texture                  texture;
 	vector<pair<string, string>> textureFilePaths;
 	vector<string>  			 textureDirectories = {
+		"Images/Objects",
 		"Images/Backgrounds",
 		"Images/Objects/PlayingCards",
 		"Images/Objects/PlayingCards/100x150"

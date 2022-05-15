@@ -21,7 +21,8 @@ public:
 
 	void listen();
 
-	bool cardWasClicked;
+	bool cardWasClicked     = false;
+	bool menuIconWasClicked = false;
 
 private:
 
@@ -36,6 +37,7 @@ private:
 	void closeWindow();
 	void resizeWindow();
 	void cardClicked();
+	void menuIconClicked();
 	void resetEvents();
 };
 
@@ -96,6 +98,7 @@ void EventHandler::mouseButton() {
 		case sf::Mouse::Left:
 			// cout << "Mouse LEFT" << endl;
 			cardClicked();
+			menuIconClicked();
 			break;
 		case sf::Mouse::Right:
 			cout << "Mouse RIGHT" << endl;
@@ -130,7 +133,7 @@ void EventHandler::resizeWindow() {
 
 // -------------------------------------------------------------------------------------------------
 
-void EventHandler::cardClicked() { // Sound effects test
+void EventHandler::cardClicked() { 
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
 	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
 	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
@@ -142,6 +145,19 @@ void EventHandler::cardClicked() { // Sound effects test
 
 // -------------------------------------------------------------------------------------------------
 
+void EventHandler::menuIconClicked() { 
+	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
+	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
+	if(mousePosition.x >= 460  && mousePosition.x <= 490 &&
+		mousePosition.y >= 10 && mousePosition.y <= 40) {
+		gameSound->playSoundEffect("tClick.ogg");
+		menuIconWasClicked = true;
+	}
+}
+
+// -------------------------------------------------------------------------------------------------
+
 void EventHandler::resetEvents() {
 	cardWasClicked = false;
+	menuIconWasClicked = false;
 }

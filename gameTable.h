@@ -22,9 +22,9 @@ public:
     GameTable(Initializer & globalData);
     void runGameLoop();
 
-    short gameSpeed       = 3;
+    short gameSpeed       = 5;
     short numberOfPlayers = 6;
-    bool  autoClick       = true;
+    bool  autoClick       = false;
 
 private:
 
@@ -47,11 +47,12 @@ private:
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
     vector<jc::Sprite>         greenRectangles;
+    jc::Sprite                 gearMenuIcon;
     vector<jc::Text>           handSizeNumbers;
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
 
-    bool mayClickOnCard            = true;
+    bool mayClick                  = true;
     bool mayStartNewRound          = false;
     bool allPlayersPlayedACard     = false;
     bool mayDeclareRoundResults    = false;
@@ -77,6 +78,8 @@ private:
 
     // ---------------------------------------------------------------
 
+    void tableTopLoop();
+    void gameMenuLoop();
     void setFontFamily();
     void setHeadingText();
     void setAndPlaceVictoryText();
@@ -85,6 +88,7 @@ private:
     void setGreenRectanglePositions();
     void setAndPlaceDeckNumberText();
     void setAndPlaceTieText();
+    void setupMiscTableObject();
     void centerTextAlignment(jc::Text & someText);
 
     void verifyNumberOfPlayers();
@@ -117,7 +121,7 @@ private:
     void checkForGameWinner();
 
     void eventMonitor();
-    void checkForMouseClickOnCard();
+    void checkForMouseClicks();
     void printAllPlayerStats();
     void printAllBooleanPermissions();
     void printPrizePotContents();
@@ -147,6 +151,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     setAndPlaceVictoryText();
     setGreenRectanglePositions();
     setAndPlaceDeckNumberText();
+    setupMiscTableObject();
     if(mayKickPlayer) {
         // kickPlayer(1);
         // kickPlayer(2);
@@ -231,6 +236,14 @@ void GameTable::setGreenRectanglePositions() {
         sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
         greenRectangles.push_back(sprite);
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setupMiscTableObject() {
+    gearMenuIcon.setTextureRect(sf::IntRect(0, 0, 30, 30));
+    gearMenuIcon.setTexture(globalData->textures.textures["gearMenuIcon"]);
+    gearMenuIcon.setOrigin(-460, -10);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -476,7 +489,7 @@ void GameTable::resetRoundVariables() {
         playerList[i]->topCard = playerList[i]->hand[0];
     }
 
-    mayClickOnCard = true;
+    mayClick = true;
     tieBreakerIndex = 1;
     tieRound = 0;
 }
@@ -695,6 +708,22 @@ void GameTable::runGameLoop() {
         eventMonitor();
         globalData->window.clear(sf::Color(0, 90, 0));
 
+        tableTopLoop();
+
+        globalData->window.display();
+    } 
+}   
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::gameMenuLoop() {
+    cout << "This is the menu!" << endl;
+
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::tableTopLoop() {
         if(!gameOver) 
             activateGameRound();
         else {
@@ -705,10 +734,7 @@ void GameTable::runGameLoop() {
         }
 
         drawAllTableSprites();
-        globalData->window.display();
-
-    } 
-}   
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -723,14 +749,17 @@ void GameTable::drawAllTableSprites() {
             globalData->window.draw(tieText[winnerPool[i]->number - 1]);
         }
     }
+
+    globalData->window.draw(gearMenuIcon);
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::checkForMouseClickOnCard() {
+void GameTable::checkForMouseClicks() {
+
     if(globalData->eventHandler.cardWasClicked || autoClick) {
         mayStartNewRound = true;
-        mayClickOnCard = false;
+        mayClick = false;
         globalData->eventHandler.cardWasClicked = false;
     }
 }
@@ -738,7 +767,7 @@ void GameTable::checkForMouseClickOnCard() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::eventMonitor() {
-    if(mayClickOnCard) checkForMouseClickOnCard();
+    if(mayClick) checkForMouseClicks();
     // Future events
 }
 
@@ -764,7 +793,7 @@ void GameTable::printAllPlayerStats() {
 void GameTable::printAllBooleanPermissions() {
     cout << "============= Booleans =============" << endl;
     cout << "mayStartNewRound: "          << mayStartNewRound          << endl;
-    cout << "mayClickOnCard: "            << mayClickOnCard            << endl;
+    cout << "mayClick: "                  << mayClick                  << endl;
     cout << "allPlayersPlayedACard: "     << allPlayersPlayedACard     << endl;    
     cout << "mayDeclareRoundResults: "    << mayDeclareRoundResults    << endl;   
     cout << "hiPlayersNotYetDetermined: " << hiPlayersNotYetDetermined << endl; 
