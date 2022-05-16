@@ -36,6 +36,7 @@ public:
 	unsigned int screenHeight = 750;
 	short frameRate           = 20;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
+	bool gameMenuIsOpen       = false;
 
 	sf::RenderWindow window;
 	// sf::Sprite background;

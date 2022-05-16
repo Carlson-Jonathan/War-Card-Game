@@ -20,11 +20,11 @@ public:
 
     GameTable() {}
     GameTable(Initializer & globalData);
-    void runGameLoop();
+    void gameTableLoop();
 
-    short gameSpeed       = 5;
+    short gameSpeed       = 0;
     short numberOfPlayers = 6;
-    bool  autoClick       = false;
+    bool  autoClick       = true;
 
 private:
 
@@ -47,7 +47,6 @@ private:
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
     vector<jc::Sprite>         greenRectangles;
-    jc::Sprite                 gearMenuIcon;
     vector<jc::Text>           handSizeNumbers;
     vector<jc::Text>           winnerText;
     vector<jc::Text>           tieText;
@@ -78,7 +77,6 @@ private:
 
     // ---------------------------------------------------------------
 
-    void tableTopLoop();
     void gameMenuLoop();
     void setFontFamily();
     void setHeadingText();
@@ -88,7 +86,6 @@ private:
     void setGreenRectanglePositions();
     void setAndPlaceDeckNumberText();
     void setAndPlaceTieText();
-    void setupMiscTableObject();
     void centerTextAlignment(jc::Text & someText);
 
     void verifyNumberOfPlayers();
@@ -151,7 +148,6 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     setAndPlaceVictoryText();
     setGreenRectanglePositions();
     setAndPlaceDeckNumberText();
-    setupMiscTableObject();
     if(mayKickPlayer) {
         // kickPlayer(1);
         // kickPlayer(2);
@@ -236,14 +232,6 @@ void GameTable::setGreenRectanglePositions() {
         sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
         greenRectangles.push_back(sprite);
     }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameTable::setupMiscTableObject() {
-    gearMenuIcon.setTextureRect(sf::IntRect(0, 0, 30, 30));
-    gearMenuIcon.setTexture(globalData->textures.textures["gearMenuIcon"]);
-    gearMenuIcon.setOrigin(-460, -10);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -539,7 +527,6 @@ void GameTable::breakTie() {
     // Called when a player ties on their last card and cannot break it with another card.
     for(short i = 0; i < winnerPool.size(); i++) {
         if(!winnerPool[i]->numCardsInHand) { 
-            // cout << winnerPool[i]->name << " tied on their last card! (Please don't Seg fault!)" << endl;
             winnerPool.erase(winnerPool.begin() + i);
 
             if(winnerPool.size() == 1) {
@@ -702,20 +689,6 @@ void GameTable::drawCardsBacksAndNumbers() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::runGameLoop() {
-    while(globalData->window.isOpen()) {
-        globalData->eventHandler.listen();
-        eventMonitor();
-        globalData->window.clear(sf::Color(0, 90, 0));
-
-        tableTopLoop();
-
-        globalData->window.display();
-    } 
-}   
-
-// -------------------------------------------------------------------------------------------------
-
 void GameTable::gameMenuLoop() {
     cout << "This is the menu!" << endl;
 
@@ -723,7 +696,7 @@ void GameTable::gameMenuLoop() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::tableTopLoop() {
+void GameTable::gameTableLoop() {
         if(!gameOver) 
             activateGameRound();
         else {
@@ -734,6 +707,7 @@ void GameTable::tableTopLoop() {
         }
 
         drawAllTableSprites();
+        eventMonitor();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -749,8 +723,6 @@ void GameTable::drawAllTableSprites() {
             globalData->window.draw(tieText[winnerPool[i]->number - 1]);
         }
     }
-
-    globalData->window.draw(gearMenuIcon);
 }
 
 // -------------------------------------------------------------------------------------------------
