@@ -22,9 +22,9 @@ public:
     GameTable(Initializer & globalData);
     void gameTableLoop();
 
-    short gameSpeed       = 0;
+    short gameSpeed       = 6;
     short numberOfPlayers = 6;
-    bool  autoClick       = true;
+    bool  autoClick       = false;
 
 private:
 
