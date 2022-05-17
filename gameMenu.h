@@ -10,10 +10,10 @@ using namespace std;
 #include "miscellaneous.h"
 
 class GameMenu {
-public:
-public:
+public: 
+
     GameMenu() {}
-    GameMenu(Initializer & globalData); 
+    GameMenu(Initializer & globalData);
 
     void gameMenuLoop();
 
@@ -21,15 +21,29 @@ private:
 
     Initializer* globalData;
     vector<sf::Text> menuItemTexts;
-    vector<pair<short, short>> menuItemPositions = {
-        {200.f, 100.f},
-        {200.f, 200.f},
-        {200.f, 300.f}
+    vector<pair<float, float>> menuItemPositions = {
+        {250.f, 65.f},
+        {30.f, 100.f},
+        {30.f, 150.f},
+        {30.f, 200.f},
+        {30.f, 250.f},
+        {30.f, 300.f},
+        {30.f, 350.f},
+        {30.f, 400.f}                        
     };
 
+    vector<string> menuItemStrings = {
+        "Settings",
+        "Number of Players:\t6",
+        "Game Speed:\t1  2  3  4  5  6  7  8  9  10",
+        "Auto Click:\tDisabled",
+        "Card Style:\tClassic\tElla Style",
+        "Music Volume:\t100%",
+        "Sound Volume:\t100%",
+        "Credits"
+    };    
 
     void setMenuItemPositions();
-
 };
 
 #endif // GAMEMENU_H
@@ -38,14 +52,18 @@ private:
 // =================================================================================================
 
 
-GameMenu::GameMenu(Initializer & globaData) {
-    this->globalData = globalData;
+GameMenu::GameMenu(Initializer & globalData) {
+    this->globalData = &globalData;
+    setMenuItemPositions();
+    cout << menuItemPositions.size() << endl;
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void GameMenu::gameMenuLoop() {
-    cout << "This is the menu!" << endl;
+    for(short i = 0; i < menuItemTexts.size(); i++) {
+        globalData->window.draw(menuItemTexts[i]);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -54,11 +72,13 @@ void GameMenu::setMenuItemPositions() {
     for(short i = 0; i < menuItemPositions.size(); i++) {
         menuItemTexts.push_back(sf::Text());
         menuItemTexts[i].setFont(globalData->defaultFont); 
-        menuItemTexts[i].setCharacterSize(50); 
-        menuItemTexts[i].setFillColor(sf::Color(255, 255, 255));
-        menuItemTexts[i].setString("Some menu item");
-        Miscellaneous::centerTextAlignment(menuItemTexts[i]);
+        menuItemTexts[i].setCharacterSize(35); 
+        menuItemTexts[i].setFillColor(sf::Color(160, 240, 160));
+        menuItemTexts[i].setString(menuItemStrings[i]);
         menuItemTexts[i].setPosition(sf::Vector2f(menuItemPositions[i].first, 
                                                   menuItemPositions[i].second));
     }
+
+    menuItemTexts[0].setCharacterSize(55); 
+    Miscellaneous::centerTextAlignment(menuItemTexts[0]);
 }

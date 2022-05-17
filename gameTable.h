@@ -11,7 +11,6 @@
 #include "cardDeck.h"
 #include "initializer.h"
 #include "player.h"
-#include "jc.h"
 
 using namespace std;
 
@@ -665,13 +664,6 @@ void GameTable::drawCardsBacksAndNumbers() {
         globalData->window.draw(handSizeNumbers[i]);
         elapsed = clock.getElapsedTime();
     }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameTable::gameMenuLoop() {
-    cout << "This is the menu!" << endl;
-
 }
 
 // -------------------------------------------------------------------------------------------------

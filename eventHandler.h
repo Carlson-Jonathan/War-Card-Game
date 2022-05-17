@@ -148,7 +148,7 @@ void EventHandler::cardClicked() {
 void EventHandler::menuIconClicked() { 
 	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
 	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
-	if(mousePosition.x >= 460  && mousePosition.x <= 490 &&
+	if(mousePosition.x >= 10  && mousePosition.x <= 40 &&
 		mousePosition.y >= 10 && mousePosition.y <= 40) {
 		gameSound->playSoundEffect("tClick.ogg");
 		menuIconWasClicked = true;

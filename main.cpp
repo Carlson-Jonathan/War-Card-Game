@@ -15,15 +15,14 @@ using namespace std;
 int main() {
 
 	srand(time(NULL)); 		// For seeding the random number generator
-	Initializer globalData;
-
+	Initializer         globalData;
+	GameMenu  gameMenu (globalData);
 	GameTable gameTable(globalData);
-	GameMenu gameMenu(globalData);
 
-	jc::Sprite gearMenuIcon;
+	sf::Sprite gearMenuIcon;
 	gearMenuIcon.setTextureRect(sf::IntRect(0, 0, 30, 30));
     gearMenuIcon.setTexture(globalData.textures.textures["gearMenuIcon"]);
-    gearMenuIcon.setOrigin(-460, -10);
+    gearMenuIcon.setOrigin(-10, -10);
 
 	while(globalData.window.isOpen()) {
 		globalData.eventHandler.listen();
