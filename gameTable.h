@@ -37,7 +37,6 @@ private:
     short conclusionDelay = 3000;
     short tieDelay = 2500;
 
-    string fontFile = "Fonts/Robusta-Regular.ttf";
     Initializer* globalData;
     CardDeck cardDeck; 
     float xMid, yMid;
@@ -46,10 +45,10 @@ private:
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
-    vector<jc::Sprite>         greenRectangles;
-    vector<jc::Text>           handSizeNumbers;
-    vector<jc::Text>           winnerText;
-    vector<jc::Text>           tieText;
+    vector<sf::Sprite>         greenRectangles;
+    vector<sf::Text>           handSizeNumbers;
+    vector<sf::Text>           winnerText;
+    vector<sf::Text>           tieText;
 
     bool mayClick                  = true;
     bool mayStartNewRound          = false;
@@ -71,14 +70,13 @@ private:
     bool mayTestLastCardTie    = false;
     
 	sf::Font  font; 
-    jc::Text  headingText;
+    sf::Text  headingText;
     sf::Clock clock;
     sf::Time  elapsed; 
 
     // ---------------------------------------------------------------
 
     void gameMenuLoop();
-    void setFontFamily();
     void setHeadingText();
     void setAndPlaceVictoryText();
     void setCardPositions();
@@ -86,7 +84,6 @@ private:
     void setGreenRectanglePositions();
     void setAndPlaceDeckNumberText();
     void setAndPlaceTieText();
-    void centerTextAlignment(jc::Text & someText);
 
     void verifyNumberOfPlayers();
     void generatePlayers();
@@ -143,7 +140,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     generatePlayers();
     setGameSpeed(gameSpeed);
     dealCardsToPlayers();
-    setFontFamily();
+    this->font = globalData.defaultFont;
     setCardPositions();
     setAndPlaceVictoryText();
     setGreenRectanglePositions();
@@ -164,15 +161,7 @@ void GameTable::setHeadingText() {
     headingText.setCharacterSize(40); 
     headingText.setFillColor(sf::Color::Yellow);
     headingText.setPosition(sf::Vector2f(globalData->screenWidth / 1.65, 60));
-    centerTextAlignment(headingText);
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameTable::centerTextAlignment(jc::Text & someText) {
-    sf::FloatRect textRect = someText.getLocalBounds();
-    someText.setOrigin(textRect.left + textRect.width / 2.0f, 
-                       textRect.top  + textRect.height / 2.0f);
+    Miscellaneous::centerTextAlignment(headingText);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -226,21 +215,12 @@ void GameTable::setGameSpeed(short speed) {
 
 void GameTable::setGreenRectanglePositions() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        jc::Sprite sprite;
+        sf::Sprite sprite;
         sprite.setTextureRect(sf::IntRect(0, 0, 80, 124));
         sprite.setTexture(globalData->textures.textures["cardPositionMarker"]);
         sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
         greenRectangles.push_back(sprite);
     }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameTable::setFontFamily() {
-    if (!this->font.loadFromFile(this->fontFile)) {
-        cout << "ERROR: GameTable::setText(): Font " << fontFile << " not found." << endl; 
-        exit(139);
-    }   
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -257,12 +237,12 @@ void GameTable::setAndPlaceDeckNumberText() {
     };
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        handSizeNumbers.push_back(jc::Text());
+        handSizeNumbers.push_back(sf::Text());
         handSizeNumbers[i].setFont(font); 
         handSizeNumbers[i].setCharacterSize(50); 
         handSizeNumbers[i].setFillColor(sf::Color(255, 255, 255));
         handSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
-        centerTextAlignment(handSizeNumbers[i]);
+        Miscellaneous::centerTextAlignment(handSizeNumbers[i]);
         handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
     }
 }
@@ -272,20 +252,20 @@ void GameTable::setAndPlaceDeckNumberText() {
 void GameTable::setAndPlaceVictoryText() {
 
     for(short i = 0; i < numberOfPlayers; i++) {
-        winnerText.push_back(jc::Text());
+        winnerText.push_back(sf::Text());
         winnerText[i].setFont(font); 
         winnerText[i].setCharacterSize(70); 
         winnerText[i].setFillColor(sf::Color(60, 210, 60));
         winnerText[i].setString("Winner");
 
-        tieText.push_back(jc::Text());
+        tieText.push_back(sf::Text());
         tieText[i].setFont(font);
         tieText[i].setCharacterSize(70);
         tieText[i].setFillColor(sf::Color::Cyan);
         tieText[i].setString("Tie");
 
-        centerTextAlignment(winnerText[i]);
-        centerTextAlignment(tieText[i]);
+        Miscellaneous::centerTextAlignment(winnerText[i]);
+        Miscellaneous::centerTextAlignment(tieText[i]);
 
         winnerText[i].setPosition(sf::Vector2f(-cardPositions[i].first  + 50.f, 
                                                -cardPositions[i].second + 72.f));  
@@ -454,7 +434,7 @@ void GameTable::awardPrizePotToVictor() {
     }
     winner->numCardsInHand = winner->hand.size();
     handSizeNumbers[winner->number - 1].setString(to_string(winner->numCardsInHand));
-    centerTextAlignment(handSizeNumbers[winner->number - 1]);
+    Miscellaneous::centerTextAlignment(handSizeNumbers[winner->number - 1]);
     prizePot = {};
 }
 
@@ -647,7 +627,7 @@ void GameTable::adjustHandSizeNumber(shared_ptr<Player> player) {
     handSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
     if(player->numCardsInHand < 1) 
         handSizeNumbers[player->number - 1].setString("Out");
-    centerTextAlignment(handSizeNumbers[player->number - 1]);
+    Miscellaneous::centerTextAlignment(handSizeNumbers[player->number - 1]);
 
     short randNum = Miscellaneous::generateRandomNumber(2);
     globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
@@ -703,7 +683,7 @@ void GameTable::gameTableLoop() {
             vector<short> winner = getActivePlayerIndecies();
             handSizeNumbers[winner[0]].setString("  Winner!\nGame Over");
             handSizeNumbers[winner[0]].setFillColor(sf::Color::Blue);
-            centerTextAlignment(handSizeNumbers[winner[0]]);
+            Miscellaneous::centerTextAlignment(handSizeNumbers[winner[0]]);
         }
 
         drawAllTableSprites();
@@ -810,7 +790,7 @@ void GameTable::scanForDuplicateCards() {
 void GameTable::kickPlayer(short playerNumber) {
     playerList[playerNumber - 1]->isOutOfGame = true;
     handSizeNumbers[playerNumber - 1].setString("Kicked");
-    centerTextAlignment(handSizeNumbers[playerNumber - 1]);
+    Miscellaneous::centerTextAlignment(handSizeNumbers[playerNumber - 1]);
 }
 
 // -------------------------------------------------------------------------------------------------

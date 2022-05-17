@@ -10,7 +10,9 @@ using namespace std;
 #include <vector>
 #include <sstream>
 #include <stdlib.h>     // srand, rand 
-#include <time.h>       
+#include <time.h>  
+#include <SFML/Graphics.hpp>
+
 
 // A library for miscellaneous, non-cohesive functions that do not need initialization.
 
@@ -25,6 +27,7 @@ public:
     static float          convertStringToFloat(string number);
     static string         shrinkWhiteSpacing(string str);
     static vector<string> parseString(string str);
+    static void           centerTextAlignment(sf::Text & someText);
 };
 
 #endif // MISCELLANEOUS_H
