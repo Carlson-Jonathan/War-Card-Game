@@ -36,6 +36,7 @@ public:
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
 	short frameRate           = 20;
+	short gameSpeed			  = 6;
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
 	bool gameMenuIsOpen       = false;

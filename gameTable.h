@@ -21,7 +21,6 @@ public:
     GameTable(Initializer & globalData);
     void gameTableLoop();
 
-    short gameSpeed       = 6;
     short numberOfPlayers = 6;
     bool  autoClick       = false;
 
@@ -137,7 +136,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     this->globalData = &globalData;
     verifyNumberOfPlayers();
     generatePlayers();
-    setGameSpeed(gameSpeed);
+    setGameSpeed(globalData.gameSpeed);
     dealCardsToPlayers();
     this->font = globalData.defaultFont;
     setCardPositions();
@@ -198,11 +197,11 @@ void GameTable::setCardPositions() {
 
 void GameTable::setGameSpeed(short speed) {
 
-    // Speeds (slow to fast)     0    1    2    3     4     5     6     7     8     9     10
-    short placementDelay[]  = {  3,   6,  12,  25,   50,  100,  150,  200,  250,  350,   525};
-    short resultsDelay[]    = { 21,  42,  83, 166,  333,  666, 1000, 1333, 1666, 2332,  3500};
-    short conclusionDelay[] = { 62, 125, 250, 500, 1000, 2000, 3000, 4000, 5000, 7000, 10500};
-    short tieDelay[]        = { 36,  78, 156, 312,  625, 1250, 2500, 3500, 4500, 6300,  9500};
+    // Speeds (slow to fast)     1    2     3     4     5     6     7     8     9    10
+    short placementDelay[]  = { 36,  47,   63,   84,  113,  150,  195,  260,  338,  439};
+    short resultsDelay[]    = {237, 316,  422,  563,  750, 1000, 1300, 1690, 2197, 2856};
+    short conclusionDelay[] = {712, 949, 1266, 1688, 2250, 3000, 3900, 5070, 6591, 8568};
+    short tieDelay[]        = {593, 791, 1055, 1406, 1875, 2500, 3250, 4225, 5492, 7140};
 
     this->placementDelay  = placementDelay[speed];
     this->resultsDelay    = resultsDelay[speed];
@@ -712,7 +711,7 @@ void GameTable::checkForMouseClicks() {
 
 void GameTable::eventMonitor() {
     if(mayClick) checkForMouseClicks();
-    // Future events
+    setGameSpeed(globalData->gameSpeed);
 }
 
 // -------------------------------------------------------------------------------------------------
