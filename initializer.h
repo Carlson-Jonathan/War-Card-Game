@@ -35,11 +35,15 @@ public:
 
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
+	
 	short frameRate           = 20;
-	short gameSpeed			  = 6;
+	short gameSpeed			  = 5;
+
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
+
 	bool gameMenuIsOpen       = false;
+	bool autoClick            = false;	
 
 	sf::RenderWindow window;
 	sf::Font defaultFont;

@@ -22,7 +22,6 @@ public:
     void gameTableLoop();
 
     short numberOfPlayers = 6;
-    bool  autoClick       = false;
 
 private:
 
@@ -201,7 +200,7 @@ void GameTable::setGameSpeed(short speed) {
     short placementDelay[]  = { 36,  47,   63,   84,  113,  150,  195,  260,  338,  439};
     short resultsDelay[]    = {237, 316,  422,  563,  750, 1000, 1300, 1690, 2197, 2856};
     short conclusionDelay[] = {712, 949, 1266, 1688, 2250, 3000, 3900, 5070, 6591, 8568};
-    short tieDelay[]        = {593, 791, 1055, 1406, 1875, 2500, 3250, 4225, 5492, 7140};
+    short tieDelay[]        = {474, 632,  843, 1125, 1500, 2000, 2600, 3380, 4394, 5712};
 
     this->placementDelay  = placementDelay[speed];
     this->resultsDelay    = resultsDelay[speed];
@@ -700,7 +699,7 @@ void GameTable::drawAllTableSprites() {
 
 void GameTable::checkForMouseClicks() {
 
-    if(globalData->eventHandler.cardWasClicked || autoClick) {
+    if(globalData->eventHandler.cardWasClicked || globalData->autoClick) {
         mayStartNewRound = true;
         mayClick = false;
         globalData->eventHandler.cardWasClicked = false;
