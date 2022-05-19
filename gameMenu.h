@@ -21,6 +21,11 @@ private:
 
     Initializer* globalData;
 
+    sf::RectangleShape musicVolumeBarOutline;
+    sf::RectangleShape musicVolumeBarFiller;
+    sf::RectangleShape soundVolumeBarOutline;
+    sf::RectangleShape soundVolumeBarFiller;    
+
     bool buttonIsHeld = false;
     short gameSpeedSelection = 5;
 
@@ -30,9 +35,9 @@ private:
         "Number of Players:\t6",
         "Game Speed:\t1  2  3  4  5  6  7  8  9  10",
         "Auto Play:\tDisabled",
-        "Card Style:\tRed\tBlue\tGreen",
-        "Music Volume:\t100%",
-        "Sound Volume:\t100%",
+        "Card Style:\tRed\t\tBlue\t\tGreen",
+        "Music Volume:\t\t\t\t30%",
+        "Sound Volume:\t\t\t\t100%",
         "Credits"
     }; 
 
@@ -62,16 +67,23 @@ private:
     };
 
     // {x.begin, x.end}, {y.begin, y.end}
-    pair<pair<float, float>, pair<float, float>> autoClickArea {
-        {180, 300}, {210, 250}
-    };
+    pair<pair<float, float>, pair<float, float>> autoClickArea   {{180, 300}, {210, 250}};     
+    pair<pair<float, float>, pair<float, float>> musicVolumeArea {{200, 465}, {308, 347}};
+
+    void setMenuItemPositions();
+    void setAndDrawGameSpeedSelectionBox(short xPos);
+    void setMusicVolumeBar();
+    void drawVolumeBars();
 
     void listenForMouseClicks();
-    void setMenuItemPositions();
     bool leftClicked();
-    void setAndDrawGameSpeedSelectionBox(short xPos);
+
     void setGameSpeed(float x, float y);
     void toggleAutoClick(float x, float y);
+    void adjustMusicVolume(float x, float y);
+
+    float calculateAreaPercentage(short x);
+
 };
 
 #endif // GAMEMENU_H
@@ -83,7 +95,7 @@ private:
 GameMenu::GameMenu(Initializer & globalData) {
     this->globalData = &globalData;
     setMenuItemPositions();
-    cout << menuItemPositions.size() << endl;
+    setMusicVolumeBar();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -91,6 +103,10 @@ GameMenu::GameMenu(Initializer & globalData) {
 void GameMenu::gameMenuLoop() {
     listenForMouseClicks();
     setAndDrawGameSpeedSelectionBox(gameSpeedSelection);
+    drawVolumeBars();
+
+
+    // This stays last
     for(short i = 0; i < menuItemTexts.size(); i++) {
         globalData->window.draw(menuItemTexts[i]);
     }
@@ -147,7 +163,7 @@ void GameMenu::listenForMouseClicks() {
     if(leftClicked()) {
         setGameSpeed   (mouseX, mouseY);
         toggleAutoClick(mouseX, mouseY);
-
+        adjustMusicVolume(mouseX, mouseY);
     }
 }
 
@@ -206,3 +222,65 @@ void GameMenu::toggleAutoClick(float x, float y) {
         globalData->gameSound.playSoundEffect("tClick.ogg");
     }
 }
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::setMusicVolumeBar() {
+    musicVolumeBarOutline.setSize(sf::Vector2f(260.f, 32.f));
+    musicVolumeBarOutline.setOrigin(-xClickZonesMenuSpeed[1].first, -menuItemPositions[5].second - 9);
+    musicVolumeBarOutline.setFillColor(sf::Color(0.f, 90.f, 0.f));
+    musicVolumeBarOutline.setOutlineThickness(4.f);
+    musicVolumeBarOutline.setOutlineColor(sf::Color(0, 50, 0));    
+
+    musicVolumeBarFiller.setSize(sf::Vector2f(81.f, 36.f));
+    musicVolumeBarFiller.setOrigin (-xClickZonesMenuSpeed[1].first, -menuItemPositions[5].second - 5);
+    musicVolumeBarFiller.setFillColor(sf::Color(0.f, 50.f, 0.f));
+
+    soundVolumeBarOutline.setSize(sf::Vector2f(260.f, 32.f));
+    soundVolumeBarOutline.setOrigin(-xClickZonesMenuSpeed[1].first, -menuItemPositions[6].second - 9);
+    soundVolumeBarOutline.setFillColor(sf::Color(0.f, 90.f, 0.f));
+    soundVolumeBarOutline.setOutlineThickness(4.f);
+    soundVolumeBarOutline.setOutlineColor(sf::Color(0, 50, 0));     
+
+    soundVolumeBarFiller.setSize(sf::Vector2f(80.f, 36.f));
+    soundVolumeBarFiller.setOrigin (-xClickZonesMenuSpeed[1].first, -menuItemPositions[6].second - 5);
+    soundVolumeBarFiller.setFillColor(sf::Color(0.f, 50.f, 0.f));    
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::drawVolumeBars() {
+    // x - 200-465
+    // y - 308-347
+    globalData->window.draw(musicVolumeBarOutline);
+    globalData->window.draw(musicVolumeBarFiller);
+    globalData->window.draw(soundVolumeBarOutline);
+    globalData->window.draw(soundVolumeBarFiller);    
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::adjustMusicVolume(float x, float y) {
+   
+    bool xBegin, xEnd, yBegin, yEnd = false;
+    float newPercent = 0;
+    float newWidth = 0.0;
+    string newString = "";
+
+    xBegin = x > musicVolumeArea.first.first;
+    xEnd   = x < musicVolumeArea.first.second;
+    yBegin = y > musicVolumeArea.second.first;
+    yEnd   = y < musicVolumeArea.second.second;
+
+    if(xBegin && xEnd && yBegin && yEnd) {
+        newWidth = x - xClickZonesMenuSpeed[1].first;
+        musicVolumeBarFiller.setSize(sf::Vector2f(newWidth, 36.f));
+        newPercent = (x - musicVolumeArea.first.first) / (musicVolumeArea.first.second - 200) * 100;
+        newString = "Music Volume:\t\t\t\t" + to_string(short(newPercent)) + "%";
+        menuItemTexts[5].setString(newString);
+        buttonIsHeld = false;
+        globalData->gameSound.music.setVolume(newPercent);
+    }    
+}
+
+// -------------------------------------------------------------------------------------------------

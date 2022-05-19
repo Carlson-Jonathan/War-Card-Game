@@ -18,6 +18,7 @@ public:
 
 	sf::SoundBuffer buffer;
 	sf::Sound soundEffect;
+	sf::Music music;
 
 	vector<string> getAllFileNamesFromDirectory(const char *path);
 	void loadSoundFilePathsFromDirectories();
@@ -30,7 +31,6 @@ private:
 
 	vector<sf::SoundBuffer*> 	 soundEffectBuffers;
 	map<string, sf::Sound>   	 soundEffects;
-	sf::Music               	 music;
 	vector<pair<string, string>> soundFilePaths;
 	vector<string> 				 soundDirectories = {
 		"Sounds/Effects",
