@@ -20,12 +20,15 @@ public:
 	sf::Sound soundEffect;
 	sf::Music music;
 
+	float globalSoundEffectVolume = 100.f;
+
 	vector<string> getAllFileNamesFromDirectory(const char *path);
 	void loadSoundFilePathsFromDirectories();
 	void loadSoundEffects();
 	void playSoundEffect(string effect);
 	void loadAndPlayMusic(string song);
 	void loadAndPlayRandomSongFromDirectory();
+	void setGlobalSoundEffectVolume(float newVolume);
 
 private: 
 
@@ -120,6 +123,7 @@ void GameSound::loadSoundEffects() {
 // -------------------------------------------------------------------------------------------------
 
 void GameSound::playSoundEffect(string effect) {
+	soundEffects[effect].setVolume(globalSoundEffectVolume);
 	soundEffects[effect].play();
 }
 
@@ -136,3 +140,11 @@ void GameSound::loadAndPlayMusic(string song) {
 // -------------------------------------------------------------------------------------------------
 
 void GameSound::loadAndPlayRandomSongFromDirectory() {}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameSound::setGlobalSoundEffectVolume(float newVolume) {
+	for(auto i : soundEffects) {
+		i.second.setVolume(newVolume);
+	}
+}

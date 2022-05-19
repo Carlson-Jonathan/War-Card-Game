@@ -23,6 +23,7 @@ public:
 
 	bool cardWasClicked     = false;
 	bool menuIconWasClicked = false;
+	bool mouseRelease       = false;
 
 private:
 
@@ -60,8 +61,9 @@ EventHandler::EventHandler(sf::RenderWindow & window, unsigned int & screenWidth
 void EventHandler::listen() {
 	while (window->pollEvent(event)) {
 
-		resetEvents();	
+		// resetEvents();	
 
+	
 		switch(event.type) {
 			case sf::Event::Closed:
 				closeWindow();
@@ -74,6 +76,7 @@ void EventHandler::listen() {
 				break;
 			case sf::Event::MouseButtonReleased:
 				// cout << "Released!" << endl;
+				mouseRelease = true;
 				break;		
 			case sf::Event::MouseWheelMoved:
 				cout << "Mouse wheel Scroll:" << event.mouseWheel.delta << endl;
@@ -82,6 +85,7 @@ void EventHandler::listen() {
 				// cout << "Mouse position: {" << event.mouseMove.x << ", " << event.mouseMove.y << "}" << endl;
 				break;
 			default:
+				resetEvents();
 				break;
 		}	
 
@@ -101,7 +105,7 @@ void EventHandler::mouseButton() {
 			menuIconClicked();
 			break;
 		case sf::Mouse::Right:
-			cout << "Mouse RIGHT" << endl;
+			// cout << "Mouse RIGHT" << endl;
 			break;
 		case sf::Mouse::Middle:
 			cout << "Mouse MIDDLE" << endl;

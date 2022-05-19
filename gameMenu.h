@@ -69,10 +69,11 @@ private:
     // {x.begin, x.end}, {y.begin, y.end}
     pair<pair<float, float>, pair<float, float>> autoClickArea   {{180, 300}, {210, 250}};     
     pair<pair<float, float>, pair<float, float>> musicVolumeArea {{200, 465}, {308, 347}};
+    pair<pair<float, float>, pair<float, float>> soundVolumeArea {{200, 465}, {360, 397}};
 
     void setMenuItemPositions();
     void setAndDrawGameSpeedSelectionBox(short xPos);
-    void setMusicVolumeBar();
+    void setVolumeBars();
     void drawVolumeBars();
 
     void listenForMouseClicks();
@@ -81,6 +82,7 @@ private:
     void setGameSpeed(float x, float y);
     void toggleAutoClick(float x, float y);
     void adjustMusicVolume(float x, float y);
+    void adjustSoundVolume(float x, float y);    
 
     float calculateAreaPercentage(short x);
 
@@ -95,7 +97,7 @@ private:
 GameMenu::GameMenu(Initializer & globalData) {
     this->globalData = &globalData;
     setMenuItemPositions();
-    setMusicVolumeBar();
+    setVolumeBars();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -164,6 +166,7 @@ void GameMenu::listenForMouseClicks() {
         setGameSpeed   (mouseX, mouseY);
         toggleAutoClick(mouseX, mouseY);
         adjustMusicVolume(mouseX, mouseY);
+        adjustSoundVolume(mouseX, mouseY);
     }
 }
 
@@ -200,7 +203,7 @@ void GameMenu::toggleAutoClick(float x, float y) {
     static short state = 0;
     string autoClick = "";
 
-    cout << "{" << x << ", " << y << "}" << endl;
+    // cout << "{" << x << ", " << y << "}" << endl;
 
     xBegin = x > autoClickArea.first.first;
     xEnd   = x < autoClickArea.first.second;
@@ -225,7 +228,7 @@ void GameMenu::toggleAutoClick(float x, float y) {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameMenu::setMusicVolumeBar() {
+void GameMenu::setVolumeBars() {
     musicVolumeBarOutline.setSize(sf::Vector2f(260.f, 32.f));
     musicVolumeBarOutline.setOrigin(-xClickZonesMenuSpeed[1].first, -menuItemPositions[5].second - 9);
     musicVolumeBarOutline.setFillColor(sf::Color(0.f, 90.f, 0.f));
@@ -242,7 +245,7 @@ void GameMenu::setMusicVolumeBar() {
     soundVolumeBarOutline.setOutlineThickness(4.f);
     soundVolumeBarOutline.setOutlineColor(sf::Color(0, 50, 0));     
 
-    soundVolumeBarFiller.setSize(sf::Vector2f(80.f, 36.f));
+    soundVolumeBarFiller.setSize(sf::Vector2f(260.f, 36.f));
     soundVolumeBarFiller.setOrigin (-xClickZonesMenuSpeed[1].first, -menuItemPositions[6].second - 5);
     soundVolumeBarFiller.setFillColor(sf::Color(0.f, 50.f, 0.f));    
 }
@@ -276,6 +279,8 @@ void GameMenu::adjustMusicVolume(float x, float y) {
         newWidth = x - xClickZonesMenuSpeed[1].first;
         musicVolumeBarFiller.setSize(sf::Vector2f(newWidth, 36.f));
         newPercent = (x - musicVolumeArea.first.first) / (musicVolumeArea.first.second - 200) * 100;
+        if(newPercent <= 1) newPercent = 0;
+        if(newPercent >= 99) newPercent = 100;
         newString = "Music Volume:\t\t\t\t" + to_string(short(newPercent)) + "%";
         menuItemTexts[5].setString(newString);
         buttonIsHeld = false;
@@ -284,3 +289,34 @@ void GameMenu::adjustMusicVolume(float x, float y) {
 }
 
 // -------------------------------------------------------------------------------------------------
+
+void GameMenu::adjustSoundVolume(float x, float y) {
+   
+    bool xBegin, xEnd, yBegin, yEnd = false;
+    float newPercent = 0;
+    float newWidth = 0.0;
+    string newString = "";
+
+    xBegin = x > soundVolumeArea.first.first;
+    xEnd   = x < soundVolumeArea.first.second;
+    yBegin = y > soundVolumeArea.second.first;
+    yEnd   = y < soundVolumeArea.second.second;
+
+    if(xBegin && xEnd && yBegin && yEnd) {
+        newWidth = x - xClickZonesMenuSpeed[1].first;
+        soundVolumeBarFiller.setSize(sf::Vector2f(newWidth, 36.f));
+        newPercent = (x - soundVolumeArea.first.first) / (soundVolumeArea.first.second - 200) * 100;
+        if(newPercent <= 1) newPercent = 0;
+        if(newPercent >= 99) newPercent = 100;
+        newString = "Sound Volume:\t\t\t\t" + to_string(short(newPercent)) + "%";
+        menuItemTexts[6].setString(newString);
+        buttonIsHeld = false;
+        globalData->gameSound.globalSoundEffectVolume = newPercent;
+
+        // Prevents sound spam when dragging the volume control.
+        if(globalData->eventHandler.mouseRelease) {
+            globalData->gameSound.playSoundEffect("winner2.ogg");
+            globalData->eventHandler.mouseRelease = false;
+        }
+    }    
+}
