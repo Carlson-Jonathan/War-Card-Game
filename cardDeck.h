@@ -22,10 +22,10 @@ public:
 	vector<shared_ptr<Card>> deck;
     vector<sf::Sprite>       cardBacks;
 
-    vector<vector<shared_ptr<Card>>> divideDeck (short numberOfDecks);
-
-    void                     shuffleDeck ();
-    void                     printDeck (vector<shared_ptr<Card>> deck);
+    vector<vector<shared_ptr<Card>>> divideDeck(short numberOfDecks);
+    void generateCardBacks (short numberOfBacks);
+    void printDeck (vector<shared_ptr<Card>> deck);
+    void shuffleDeck();
 
     friend bool operator<(const Card & l, const Card & r);
     friend bool operator>(const Card & l, const Card & r);
@@ -37,7 +37,6 @@ private:
     vector<string> cardNames;
 
     void generateCardDeck  ();
-    void generateCardBacks (short numberOfBacks);
 };
 
 #endif // CARDDECK_H
@@ -115,15 +114,12 @@ void CardDeck::generateCardDeck() {
 // -------------------------------------------------------------------------------------------------
 
 void CardDeck::generateCardBacks(short numberOfBacks) {
+    cardBacks = {};
     for(short i = 0; i < numberOfBacks; i++) {
         sf::Sprite cardBack;
-        cardBack.setTexture(globalData->textures.textures["cardBack"]);
+        cardBack.setTexture(globalData->textures.textures[globalData->cardBack]);
         this->cardBacks.push_back(cardBack);
     }
-}
-
-void sortDeck() {
-    
 }
 
 // -------------------------------------------------------------------------------------------------

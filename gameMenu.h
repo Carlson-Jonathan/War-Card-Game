@@ -35,7 +35,7 @@ private:
         "Number of Players:\t6",
         "Game Speed:\t1  2  3  4  5  6  7  8  9  10",
         "Auto Play:\tDisabled",
-        "Card Style:\tRed\t\tBlue\t\tGreen",
+        "Card Style:",
         "Music Volume:\t\t\t\t30%",
         "Sound Volume:\t\t\t\t100%",
         "Credits"
@@ -66,6 +66,15 @@ private:
         {433, 457}
     };
 
+    vector<sf::RectangleShape> cardStyleColorBoxes = {};
+    vector<pair<float, float>> const xClickZonesCardStyle = {
+        {197, 237},
+        {254, 294},
+        {311, 351},
+        {368, 408},
+        {425, 465}
+    };
+
     // {x.begin, x.end}, {y.begin, y.end}
     pair<pair<float, float>, pair<float, float>> autoClickArea   {{180, 300}, {210, 250}};     
     pair<pair<float, float>, pair<float, float>> musicVolumeArea {{200, 465}, {308, 347}};
@@ -75,12 +84,16 @@ private:
     void setAndDrawGameSpeedSelectionBox(short xPos);
     void setVolumeBars();
     void drawVolumeBars();
+    void drawMenuItemTexts();
+    void drawCardStyleColorBoxes();
 
     void listenForMouseClicks();
     bool leftClicked();
 
     void setGameSpeed(float x, float y);
     void toggleAutoClick(float x, float y);
+    void setCardStyleColorBoxes();
+    void setCardStyle(float x, float y);
     void adjustMusicVolume(float x, float y);
     void adjustSoundVolume(float x, float y);    
 
@@ -97,6 +110,7 @@ private:
 GameMenu::GameMenu(Initializer & globalData) {
     this->globalData = &globalData;
     setMenuItemPositions();
+    setCardStyleColorBoxes();
     setVolumeBars();
 }
 
@@ -106,12 +120,59 @@ void GameMenu::gameMenuLoop() {
     listenForMouseClicks();
     setAndDrawGameSpeedSelectionBox(gameSpeedSelection);
     drawVolumeBars();
+    drawCardStyleColorBoxes();
 
 
-    // This stays last
+
+    drawMenuItemTexts();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::drawCardStyleColorBoxes() {
+    for(short i = 0; i < cardStyleColorBoxes.size(); i++) {
+        globalData->window.draw(cardStyleColorBoxes[i]);
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::setCardStyle(float x, float y) {
+    bool xBegin, xEnd, yBegin, yEnd = false;
+
+    vector<string> cardStyles = {
+        "redCardBack",
+        "blueCardBack",
+        "blackCardBack",
+        "orangeCardBack",
+        "purpleCardBack"
+    };
+
+    for(short i = 0; i < 5; i++) {
+
+        xBegin = x > xClickZonesCardStyle[i].first;
+        xEnd   = x < xClickZonesCardStyle[i].second;
+        yBegin = y > menuItemPositions[4].second + 10;
+        yEnd   = y < menuItemPositions[4].second + 40;
+
+        if(xBegin && xEnd && yBegin && yEnd) {
+            globalData->gameSound.playSoundEffect("tClick.ogg");
+            globalData->cardBack = cardStyles[i];
+
+            for(short i = 0; i < cardStyleColorBoxes.size(); i++) {
+                cardStyleColorBoxes[i].setOutlineThickness(0.f); 
+            }
+            cardStyleColorBoxes[i].setOutlineThickness(4.f); 
+        }
+    } 
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::drawMenuItemTexts() {
     for(short i = 0; i < menuItemTexts.size(); i++) {
         globalData->window.draw(menuItemTexts[i]);
-    }
+    } 
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -149,10 +210,34 @@ bool GameMenu::leftClicked() {
 // -------------------------------------------------------------------------------------------------
 
 void GameMenu::setAndDrawGameSpeedSelectionBox(short xPos) { 
-    sf::RectangleShape rectangle(sf::Vector2f(24.f, 50.f));
+    sf::RectangleShape rectangle(sf::Vector2f(24.f, 39.f));
     rectangle.setFillColor(sf::Color(0.f, 50.f, 0.f));
-    rectangle.setOrigin(-xClickZonesMenuSpeed[xPos].first, -menuItemPositions[2].second);
+    rectangle.setOrigin(-xClickZonesMenuSpeed[xPos].first, -menuItemPositions[2].second - 5);
     globalData->window.draw(rectangle);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::setCardStyleColorBoxes() {
+
+    vector<vector<float>> colors = {
+        {255,   0,   0}, // Red
+        {  0,   0, 255}, // Blue
+        {  0,   0,   0}, // Black
+        {224,  82,  15}, // Orange
+        {186,  33, 189}  // Purple
+    };
+
+    for(short i = 0; i < xClickZonesCardStyle.size(); i++) {
+        sf::RectangleShape rectangle(sf::Vector2f(40.f, 30.f));
+        rectangle.setFillColor(sf::Color(0.f, 50.f, 0.f));
+        rectangle.setOrigin(-xClickZonesCardStyle[i].first, -menuItemPositions[4].second - 10);
+        rectangle.setFillColor(sf::Color(colors[i][0], colors[i][1], colors[i][2]));
+        rectangle.setOutlineColor(sf::Color(160.f, 240.f, 160.f));
+        cardStyleColorBoxes.push_back(rectangle);
+    }  
+        
+    cardStyleColorBoxes[0].setOutlineThickness(4.f); // default (red)
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -167,6 +252,8 @@ void GameMenu::listenForMouseClicks() {
         toggleAutoClick(mouseX, mouseY);
         adjustMusicVolume(mouseX, mouseY);
         adjustSoundVolume(mouseX, mouseY);
+        setCardStyle(mouseX, mouseY);
+
     }
 }
 

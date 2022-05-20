@@ -41,6 +41,7 @@ public:
 
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
+	string cardBack           = "redCardBack";
 
 	bool gameMenuIsOpen       = false;
 	bool autoClick            = false;	

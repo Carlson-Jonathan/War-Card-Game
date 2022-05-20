@@ -34,6 +34,7 @@ private:
     short conclusionDelay = 3000;
     short tieDelay = 2500;
 
+    string cardBack = "redCardBack";
     Initializer* globalData;
     CardDeck cardDeck; 
     float xMid, yMid;
@@ -73,10 +74,11 @@ private:
 
     // ---------------------------------------------------------------
 
-    void gameMenuLoop();
+    // void gameMenuLoop();
     void setHeadingText();
     void setAndPlaceVictoryText();
     void setCardPositions();
+    void setCardBackPositions();
     void setGameSpeed(short speed);
     void setGreenRectanglePositions();
     void setAndPlaceDeckNumberText();
@@ -118,6 +120,7 @@ private:
     void printPrizePotContents();
     void printPlayerMove(shared_ptr<Player> player);
     void scanForDuplicateCards();
+    void setNewCardStyle();
     void verifyCardsEqualDeck();
     void kickPlayer(short playerNumber);
     void forceTie(shared_ptr<Player> player);
@@ -139,6 +142,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     dealCardsToPlayers();
     this->font = globalData.defaultFont;
     setCardPositions();
+    setCardBackPositions();
     setAndPlaceVictoryText();
     setGreenRectanglePositions();
     setAndPlaceDeckNumberText();
@@ -183,7 +187,11 @@ void GameTable::setCardPositions() {
             playerList[i]->hand[j]->cardSprite.setOrigin(cardPositions[i].first, cardPositions[i].second);
         }
     }
+}
 
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setCardBackPositions() {
     cardDeck.cardBacks[0].setOrigin(xMid + 200.f, yMid + 340.f);              
     cardDeck.cardBacks[1].setOrigin(xMid +  50.f, yMid + 340.f);   
     cardDeck.cardBacks[2].setOrigin(xMid - 100.f, yMid + 340.f);   
@@ -711,6 +719,17 @@ void GameTable::checkForMouseClicks() {
 void GameTable::eventMonitor() {
     if(mayClick) checkForMouseClicks();
     setGameSpeed(globalData->gameSpeed);
+    setNewCardStyle();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::setNewCardStyle() {
+    if(cardBack != globalData->cardBack) {
+        cardBack = globalData->cardBack;
+        cardDeck.generateCardBacks(numberOfPlayers);
+        setCardBackPositions();
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
