@@ -38,7 +38,13 @@ private:
         "Card Style:",
         "Music Volume:\t\t\t\t30%",
         "Sound Volume:\t\t\t\t100%",
-        "Credits"
+        "\t\t\t\t\t  < Credits >",
+        "Programmer:  Jonathan Carlson",
+        "Music:  cynicmusic.com,  pixelsphere.org",
+        "Sound Effects:\tKenney Vleugels,",
+        "\t\t\t\t\t\t\t David McKee",
+        "Images:  Byron Knoll",
+        "   Special Thanks to OpenGameArt.org!"
     }; 
 
     vector<pair<float, float>> const menuItemPositions = {
@@ -49,7 +55,13 @@ private:
         {30.f, 250.f},
         {30.f, 300.f},
         {30.f, 350.f},
-        {30.f, 400.f}                        
+        {30.f, 415.f},   
+        {30.f, 450.f}, 
+        {30.f, 500.f}, 
+        {30.f, 550.f}, 
+        {30.f, 585.f},
+        {30.f, 635.f},
+        {30.f, 685.f}                      
     };
 
     //  {{x.begin, x.end}

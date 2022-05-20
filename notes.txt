@@ -4,3 +4,12 @@ Segmentation Fault Finder:
 1.) Run "gdb Main.out core"
 2.) Enter command "r"
 3.) "c" to continue, or "q" to quit.
+
+
+
+Playing cards credit:
+Byron Knoll: http://code.google.com/p/vector-playing-cards/
+
+Card Backs:
+https://opengameart.org/content/colorful-poker-card-back
+
