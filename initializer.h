@@ -28,21 +28,45 @@ public:
 
 		// Play song
 		gameSound.loadAndPlayMusic(defaultMusic);
+		setFontFamily();
 	}
 
     //----------------------------------------------------------------------------------------------
 
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
+	
 	short frameRate           = 20;
+	short gameSpeed			      = 5;
+
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
+	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
+	string cardBack           = "redCardBack";
+
+	bool gameMenuIsOpen       = false;
+	bool autoClick            = false;	
 
 	sf::RenderWindow window;
+	sf::Font defaultFont;
 	// sf::Sprite background;
 
 	GameSound      gameSound;
 	EventHandler   eventHandler;
 	TextureManager textures;
+
+private:
+
+	void setFontFamily() {
+		if (!this->defaultFont.loadFromFile(this->defaultFontFamily)) {
+			cout << "ERROR: GameTable::setText(): Font " << defaultFontFamily << " not found." << endl; 
+			exit(139);
+		}   
+	}
+
 };
 
 #endif // INITIALIZER_H
+
+
+// =================================================================================================
+

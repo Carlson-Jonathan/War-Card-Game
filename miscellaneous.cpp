@@ -87,3 +87,11 @@ vector<string> Miscellaneous::parseString(string str) {
     
     return words;            
 }
+
+/*------------------------------------------------------------------------------------------------*/
+
+void Miscellaneous::centerTextAlignment(sf::Text & someText) {
+    sf::FloatRect textRect = someText.getLocalBounds();
+    someText.setOrigin(textRect.left + textRect.width / 2.0f, 
+                       textRect.top  + textRect.height / 2.0f);
+}

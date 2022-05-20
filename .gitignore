@@ -34,5 +34,8 @@
 # Build Folder
 **/Build
 UnitTests/Build/*
-.vscode*
 Build
+
+# Other
+.vscode*
+notes.txt
