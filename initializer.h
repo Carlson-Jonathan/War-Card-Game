@@ -37,7 +37,7 @@ public:
 	unsigned int screenHeight = 750;
 	
 	short frameRate           = 20;
-	short gameSpeed			  = 5;
+	short gameSpeed			      = 5;
 
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
@@ -62,6 +62,7 @@ private:
 			exit(139);
 		}   
 	}
+
 };
 
 #endif // INITIALIZER_H

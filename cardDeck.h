@@ -22,6 +22,7 @@ public:
 	vector<shared_ptr<Card>> deck;
     vector<sf::Sprite>       cardBacks;
 
+
     vector<vector<shared_ptr<Card>>> divideDeck(short numberOfDecks);
     void generateCardBacks (short numberOfBacks);
     void printDeck (vector<shared_ptr<Card>> deck);
