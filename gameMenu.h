@@ -20,16 +20,18 @@ private:
 
     Initializer* globalData;
 
+    bool soundVolumeWasAdjusted = false;
+    bool buttonIsHeld = false;
+
+    short gameSpeedSelection = 4;
+
     sf::RectangleShape musicVolumeBarOutline;
     sf::RectangleShape musicVolumeBarFiller;
     sf::RectangleShape soundVolumeBarOutline;
     sf::RectangleShape soundVolumeBarFiller;  
     sf::RectangleShape gameSpeedSelector;  
 
-    bool soundVolumeWasAdjusted = false;
-    bool buttonIsHeld = false;
-
-    short gameSpeedSelection = 5;
+    sf::Sprite gearMenuIcon;
 
     vector<sf::Text> menuItemTexts;
     vector<string> const menuItemStrings = {
@@ -51,6 +53,11 @@ private:
         "Images:\t\t\t\t  Byron Knoll",
         "\t\t\tSpecial Thanks to OpenGameArt.org!"
     }; 
+
+    pair<pair<float, float>, pair<float, float>> gearIconClickArea = {
+        {50, 150}, {37, 183}
+    };
+
 
     vector<pair<float, float>> const menuTextPositions = {
         {250.f, 65.f},
@@ -117,6 +124,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
+    void setGearMenuIcon();
     void set_AllMenuItemPositions();
     void set_GameSpeedSelector();
     void set_VolumeBars();
@@ -128,6 +136,7 @@ private:
     void draw_CardStyleColorBoxes();
 
     void listen_ForMouseClicks();
+    void listener_GearMenuIconClick(float x, float y);
     void listener_GameSpeedGUI(float x, float y);
     void listener_AutoPlayToggler(float x, float y);
     void listener_CardStyleGUI(float x, float y);
@@ -144,6 +153,7 @@ private:
 
 GameMenu::GameMenu(Initializer & globalData) {
     this->globalData = &globalData;
+    setGearMenuIcon();
     set_AllMenuItemPositions();
     set_GameSpeedSelector();
     set_VolumeBars();
@@ -154,10 +164,19 @@ GameMenu::GameMenu(Initializer & globalData) {
 
 void GameMenu::gameMenuLoop() {
     listen_ForMouseClicks();
+    globalData->window.draw(gearMenuIcon);
     draw_GameSpeedSelector(gameSpeedSelection);
     draw_VolumeBars();
     draw_CardStyleColorBoxes();
     draw_MenuItemTexts();
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::setGearMenuIcon() {
+	gearMenuIcon.setTextureRect(sf::IntRect(0, 0, 30, 30));
+    gearMenuIcon.setTexture(globalData->textures.textures["gearMenuIcon"]);
+    gearMenuIcon.setOrigin(-10, -10);    
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -293,6 +312,7 @@ void GameMenu::listen_ForMouseClicks() {
     float mouseY = sf::Mouse::getPosition(globalData->window).y;
 
     if(leftClick()) {
+        listener_GearMenuIconClick   (mouseX, mouseY);
         listener_GameSpeedGUI        (mouseX, mouseY);
         listener_AutoPlayToggler     (mouseX, mouseY);
         listener_MusicVolumeAdjuster (mouseX, mouseY);
@@ -434,6 +454,20 @@ void GameMenu::listener_SoundVolumeAdjuster(float x, float y) {
             globalData->eventHandler.mouseRelease = false;
         }
     }    
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::listener_GearMenuIconClick(float x, float y) {
+
+    bool xBegin = x > gearIconClickArea.first.first;
+    bool xEnd   = x < gearIconClickArea.first.second;
+    bool yBegin = y > gearIconClickArea.second.first;
+    bool yEnd   = y < gearIconClickArea.second.second;
+
+    if(xBegin && xEnd && yBegin && yEnd) {
+        globalData->gameMenuIsOpen = false;
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

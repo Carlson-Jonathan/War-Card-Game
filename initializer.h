@@ -18,7 +18,7 @@ class Initializer {
 public:
 
 	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
-					eventHandler(window, screenWidth, screenHeight, gameSound) {
+					eventHandler(window, screenWidth, screenHeight, gameSound) {		
 						
 		window.setFramerateLimit(frameRate);
 
@@ -37,7 +37,7 @@ public:
 	unsigned int screenHeight = 750;
 	
 	short frameRate           = 20;
-	short gameSpeed			      = 5;
+	short gameSpeed		      = 4;
 
 	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
 	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
@@ -65,8 +65,9 @@ private:
 
 };
 
-#endif // INITIALIZER_H
 
 
 // =================================================================================================
 
+
+#endif // INITIALIZER_H

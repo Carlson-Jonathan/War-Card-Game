@@ -40,8 +40,6 @@ private:
     void generateCardDeck  ();
 };
 
-#endif // CARDDECK_H
-
 
 // =================================================================================================
 
@@ -134,3 +132,5 @@ bool operator<(const Card & l, const Card & r) {
 bool operator>(const Card & l, const Card & r) {
     return l.cardName > r.cardName;
 }
+
+#endif // CARDDECK_H

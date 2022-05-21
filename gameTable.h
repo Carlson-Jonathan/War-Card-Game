@@ -43,7 +43,8 @@ private:
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
-    vector<sf::Sprite>         greenRectangles;
+    // vector<sf::Sprite>         greenRectangles;
+    vector<sf::RectangleShape> greenRectangles;
     vector<sf::Text>           handSizeNumbers;
     vector<sf::Text>           winnerText;
     vector<sf::Text>           tieText;
@@ -72,15 +73,13 @@ private:
     sf::Clock clock;
     sf::Time  elapsed; 
 
-    // ---------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
-    // void gameMenuLoop();
-    void setHeadingText();
-    void setAndPlaceVictoryText();
-    void setCardPositions();
-    void setCardBackPositions();
-    void setGameSpeed(short speed);
-    void setGreenRectanglePositions();
+    void set_VictoryText();
+    void set_CardPositions();
+    void set_CardBackPositions();
+    void set_GameSpeed(short speed);
+    void set_GreenRectangles();
     void setAndPlaceDeckNumberText();
     void setAndPlaceTieText();
 
@@ -128,8 +127,6 @@ private:
     void testSingleLastCardTie(); 
 };
 
-#endif // GAMETABLE_H
-
 
 // =================================================================================================
 
@@ -138,39 +135,22 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     this->globalData = &globalData;
     verifyNumberOfPlayers();
     generatePlayers();
-    setGameSpeed(globalData.gameSpeed);
+    set_GameSpeed(globalData.gameSpeed);
     dealCardsToPlayers();
     this->font = globalData.defaultFont;
-    setCardPositions();
-    setCardBackPositions();
-    setAndPlaceVictoryText();
-    setGreenRectanglePositions();
+    set_CardPositions();
+    set_CardBackPositions();
+    set_VictoryText();
+    set_GreenRectangles();
     setAndPlaceDeckNumberText();
-    if(mayKickPlayer) {
-        // kickPlayer(1);
-        // kickPlayer(2);
-        // kickPlayer(6);
-    }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setHeadingText() {
+void GameTable::set_CardPositions() {
 
-    headingText.setFont(font); 
-    headingText.setString("War Card Game by Jonathan Carlson   |   (C) 2022");
-    headingText.setCharacterSize(40); 
-    headingText.setFillColor(sf::Color::Yellow);
-    headingText.setPosition(sf::Vector2f(globalData->screenWidth / 1.65, 60));
-    Miscellaneous::centerTextAlignment(headingText);
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameTable::setCardPositions() {
-
-    this->xMid = -(globalData->screenWidth / 2.0);
-    this->yMid = -(globalData->screenHeight / 2.0);
+    xMid = -(globalData->screenWidth / 2.0);
+    yMid = -(globalData->screenHeight / 2.0);
 
     cardPositions = { 
         {xMid + 200.0, yMid + 170.0}, // Player 1
@@ -191,7 +171,7 @@ void GameTable::setCardPositions() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setCardBackPositions() {
+void GameTable::set_CardBackPositions() {
     cardDeck.cardBacks[0].setOrigin(xMid + 200.f, yMid + 340.f);              
     cardDeck.cardBacks[1].setOrigin(xMid +  50.f, yMid + 340.f);   
     cardDeck.cardBacks[2].setOrigin(xMid - 100.f, yMid + 340.f);   
@@ -202,7 +182,11 @@ void GameTable::setCardBackPositions() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setGameSpeed(short speed) {
+void GameTable::set_GameSpeed(short speed) {
+
+    // Reverse speed variable so 1 is fastest and 10 slowest.
+    short reverse[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+    speed = reverse[speed];
 
     // Speeds (slow to fast)     1    2     3     4     5     6     7     8     9    10
     short placementDelay[]  = { 36,  47,   63,   84,  113,  150,  195,  260,  338,  439};
@@ -218,13 +202,15 @@ void GameTable::setGameSpeed(short speed) {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setGreenRectanglePositions() {
+void GameTable::set_GreenRectangles() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        sf::Sprite sprite;
-        sprite.setTextureRect(sf::IntRect(0, 0, 80, 124));
-        sprite.setTexture(globalData->textures.textures["cardPositionMarker"]);
-        sprite.setOrigin(cardPositions[i].first - 10, cardPositions[i].second - 10);
-        greenRectangles.push_back(sprite);
+        sf::RectangleShape greenRectangle;
+        greenRectangle.setSize(sf::Vector2f(60.f, 93.f));
+        greenRectangle.setFillColor(sf::Color(0.f, 90.f, 0.f));
+        greenRectangle.setOutlineColor(sf::Color(100.f, 150.f, 100.f));
+        greenRectangle.setOutlineThickness(8.f);
+        greenRectangle.setOrigin(cardPositions[i].first - 20,  cardPositions[i].second - 25);
+        greenRectangles.push_back(greenRectangle);
     }
 }
 
@@ -254,7 +240,7 @@ void GameTable::setAndPlaceDeckNumberText() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setAndPlaceVictoryText() {
+void GameTable::set_VictoryText() {
 
     for(short i = 0; i < numberOfPlayers; i++) {
         winnerText.push_back(sf::Text());
@@ -718,7 +704,7 @@ void GameTable::checkForMouseClicks() {
 
 void GameTable::eventMonitor() {
     if(mayClick) checkForMouseClicks();
-    setGameSpeed(globalData->gameSpeed);
+    set_GameSpeed(globalData->gameSpeed);
     setNewCardStyle();
 }
 
@@ -728,7 +714,7 @@ void GameTable::setNewCardStyle() {
     if(cardBack != globalData->cardBack) {
         cardBack = globalData->cardBack;
         cardDeck.generateCardBacks(numberOfPlayers);
-        setCardBackPositions();
+        set_CardBackPositions();
     }
 }
 
@@ -831,3 +817,5 @@ void GameTable::printPlayerMove(shared_ptr<Player> player) {
     cout << player->name << " is out: " << player->isOutOfGame 
          << " Cards on deck: " << player->numCardsInHand << "\t" << player->topCard->cardName << endl; 
 }
+
+#endif // GAMETABLE_H

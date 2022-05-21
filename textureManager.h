@@ -37,8 +37,6 @@ private:
 	void 		   populateTextureList();
 };
 
-#endif // TEXUTUREMANAGER_H
-
 
 // =================================================================================================
 
@@ -125,3 +123,5 @@ vector<string> TextureManager::getAllFileNamesFromDirectory(const char *path) {
 	closedir(directory);
 	return files;
 }
+
+#endif // TEXUTUREMANAGER_H

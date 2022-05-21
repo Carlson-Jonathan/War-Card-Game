@@ -42,7 +42,6 @@ private:
 	void resetEvents();
 };
 
-#endif // EVENTHANDLER_H
 
 
 // =================================================================================================
@@ -165,3 +164,5 @@ void EventHandler::resetEvents() {
 	cardWasClicked = false;
 	menuIconWasClicked = false;
 }
+
+#endif // EVENTHANDLER_H
