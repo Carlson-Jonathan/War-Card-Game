@@ -83,20 +83,22 @@ private:
     void set_GameSpeed(short speed);
     void set_VictoryText();
 
-    void verifyNumberOfPlayers();
-    void generatePlayers();
-    void dealCardsToPlayers();  
-      
     void draw_CardsBacks();
     void draw_GreenRectangles();
     void draw_DeckSizeNumbers();
     void draw_AllTableSprites();
+
+    // ------------------------------
+
+    void verifyNumberOfPlayers();
+    void generatePlayers();
+    void dealCardsToPlayers();  
     vector<short> getActivePlayerIndecies();
 
     void activateGameRound();
     void revealFaceUpCardsWithDelayOf(short delay);
     void drawPlayerFaceUpCards();
-    void adjustHandSizeNumber(shared_ptr<Player> player);
+    void adjustDeckSizeNumber(shared_ptr<Player> player);
 
     short getHighestCardValuePlayed(vector<shared_ptr<Player>> competingPlayers, short ith_card);
     void fillWinnerPool(vector<shared_ptr<Player>> competingPlayers, short ith_card);
@@ -122,7 +124,7 @@ private:
     void printPrizePotContents();
     void printPlayerMove(shared_ptr<Player> player);
     void scanForDuplicateCards();
-    void setNewCardStyle();
+    void changeCardStyle();
     void verifyCardsEqualDeck();
     void kickPlayer(short playerNumber);
     void forceTie(shared_ptr<Player> player);
@@ -529,7 +531,7 @@ void GameTable::breakTieOnLastCard(shared_ptr<Player> player) {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::playTieBreakerCard(shared_ptr<Player> player) {
-    adjustHandSizeNumber(player);
+    adjustDeckSizeNumber(player);
     short ith_card = tieRound;
     player->topCard = player->hand[ith_card]; 
 }
@@ -585,14 +587,13 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
         faceupCards++;
         shared_ptr<Player> currentPlayer = playerList[activePlayerIndecies[faceupCards - 1]];
         clock.restart();
-        adjustHandSizeNumber(currentPlayer);
+        adjustDeckSizeNumber(currentPlayer);
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-// Adjusts card deck number and plays sound
-void GameTable::adjustHandSizeNumber(shared_ptr<Player> player) {
+void GameTable::adjustDeckSizeNumber(shared_ptr<Player> player) {
     player->numCardsInHand--;
     deckSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
     if(player->numCardsInHand < 1) 
@@ -604,7 +605,7 @@ void GameTable::adjustHandSizeNumber(shared_ptr<Player> player) {
 }
 
 // -------------------------------------------------------------------------------------------------
-// Loops always
+
 void GameTable::drawPlayerFaceUpCards() {
     vector<short> activePlayerIndecies = getActivePlayerIndecies();
     for(short i = 0; i < faceupCards; i++) {
@@ -665,7 +666,7 @@ void GameTable::gameTableLoop() {
             Miscellaneous::centerTextAlignment(deckSizeNumbers[winner[0]]);
         }
 
-        drawAllTableSprites();
+        draw_AllTableSprites();
         eventMonitor();
 }
 
@@ -702,12 +703,12 @@ void GameTable::checkForMouseClicks() {
 void GameTable::eventMonitor() {
     if(mayClick) checkForMouseClicks();
     set_GameSpeed(globalData->gameSpeed);
-    setNewCardStyle();
+    changeCardStyle();
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setNewCardStyle() {
+void GameTable::changeCardStyle() {
     if(cardBack != globalData->cardBack) {
         cardBack = globalData->cardBack;
         cardDeck.generateCardBacks(numberOfPlayers);
