@@ -43,9 +43,8 @@ private:
     vector<pair<float, float>> cardPositions;
     vector<shared_ptr<Player>> winnerPool;
     vector<shared_ptr<Card>>   prizePot;
-    // vector<sf::Sprite>         greenRectangles;
     vector<sf::RectangleShape> greenRectangles;
-    vector<sf::Text>           handSizeNumbers;
+    vector<sf::Text>           deckSizeNumbers;
     vector<sf::Text>           winnerText;
     vector<sf::Text>           tieText;
 
@@ -61,13 +60,15 @@ private:
     bool mayConcludeRound          = false;
     bool gameOver                  = false;
 
-    // For debugging:
-    bool mayKickPlayer         = false;
-    bool mayForceTie           = false;
-    bool mayTestGameEnding     = false;
-    bool testDoubleLastCardTie = false;
-    bool mayTestLastCardTie    = false;
-    
+    vector<pair<float, float>> deckSizeTextPositions = {
+        {100.f, 108.f}, // Player 1
+        {250.f, 108.f}, // Player 2
+        {400.f, 108.f}, // Player 3
+        {100.f, 643.f}, // Player 4
+        {250.f, 643.f}, // Player 5
+        {400.f, 643.f}  // Player 6
+    };
+
 	sf::Font  font; 
     sf::Text  headingText;
     sf::Clock clock;
@@ -75,19 +76,21 @@ private:
 
     // ---------------------------------------------------------------------------------------------
 
-    void set_VictoryText();
     void set_CardPositions();
     void set_CardBackPositions();
-    void set_GameSpeed(short speed);
+    void set_DeckSizeText();
     void set_GreenRectangles();
-    void setAndPlaceDeckNumberText();
-    void setAndPlaceTieText();
+    void set_GameSpeed(short speed);
+    void set_VictoryText();
 
     void verifyNumberOfPlayers();
     void generatePlayers();
-    void dealCardsToPlayers();    
-    void drawCardsBacksAndNumbers();
-    void drawAllTableSprites();
+    void dealCardsToPlayers();  
+      
+    void draw_CardsBacks();
+    void draw_GreenRectangles();
+    void draw_DeckSizeNumbers();
+    void draw_AllTableSprites();
     vector<short> getActivePlayerIndecies();
 
     void activateGameRound();
@@ -142,7 +145,7 @@ GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     set_CardBackPositions();
     set_VictoryText();
     set_GreenRectangles();
-    setAndPlaceDeckNumberText();
+    set_DeckSizeText();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -216,25 +219,16 @@ void GameTable::set_GreenRectangles() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::setAndPlaceDeckNumberText() {
-
-    vector<pair<float, float>> textPositions = {
-        {100.f, 108.f}, // Player 1
-        {250.f, 108.f}, // Player 2
-        {400.f, 108.f}, // Player 3
-        {100.f, 643.f}, // Player 4
-        {250.f, 643.f}, // Player 5
-        {400.f, 643.f}  // Player 6
-    };
-
+void GameTable::set_DeckSizeText() {
     for(short i = 0; i < numberOfPlayers; i++) {
-        handSizeNumbers.push_back(sf::Text());
-        handSizeNumbers[i].setFont(font); 
-        handSizeNumbers[i].setCharacterSize(50); 
-        handSizeNumbers[i].setFillColor(sf::Color(255, 255, 255));
-        handSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
-        Miscellaneous::centerTextAlignment(handSizeNumbers[i]);
-        handSizeNumbers[i].setPosition(sf::Vector2f(textPositions[i].first, textPositions[i].second));     
+        deckSizeNumbers.push_back(sf::Text());
+        deckSizeNumbers[i].setFont(font); 
+        deckSizeNumbers[i].setCharacterSize(50); 
+        deckSizeNumbers[i].setFillColor(sf::Color(255, 255, 255));
+        deckSizeNumbers[i].setString(to_string(playerList[i]->numCardsInHand));
+        Miscellaneous::centerTextAlignment(deckSizeNumbers[i]);
+        deckSizeNumbers[i].setPosition(sf::Vector2f(deckSizeTextPositions[i].first, 
+                                                    deckSizeTextPositions[i].second));     
     }
 }
 
@@ -288,23 +282,13 @@ void GameTable::generatePlayers() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::dealCardsToPlayers() {
-    if(mayTestLastCardTie) {
-        testSingleLastCardTie();
-        return;
-    }
-
     vector<vector<shared_ptr<Card>>> hands;
     hands = cardDeck.divideDeck(numberOfPlayers);
     for(short i = 0; i < numberOfPlayers; i++) {
         playerList[i]->hand = hands[i];
         playerList[i]->numCardsInHand = hands[i].size();
         playerList[i]->topCard = playerList[i]->hand[0];
-
-        if(mayForceTie) forceTie(playerList[i]); 
     }
-
-    if(testDoubleLastCardTie) playerList[0]->hand = playerList[1]->hand;
-    if(mayTestGameEnding) testGameEnding();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -424,8 +408,8 @@ void GameTable::awardPrizePotToVictor() {
         winner->hand.push_back(i);
     }
     winner->numCardsInHand = winner->hand.size();
-    handSizeNumbers[winner->number - 1].setString(to_string(winner->numCardsInHand));
-    Miscellaneous::centerTextAlignment(handSizeNumbers[winner->number - 1]);
+    deckSizeNumbers[winner->number - 1].setString(to_string(winner->numCardsInHand));
+    Miscellaneous::centerTextAlignment(deckSizeNumbers[winner->number - 1]);
     prizePot = {};
 }
 
@@ -532,11 +516,6 @@ void GameTable::breakTie() {
 // -------------------------------------------------------------------------------------------------
 
 void GameTable::breakTieOnLastCard(shared_ptr<Player> player) {
-    // mayDisplayTieText = false;
-    // mayDeclareRoundResults = true;
-    // isATie = false;
-    // mayBreakTie = false;
-
     cout << player->name << " played their last card and it was a tie! (Please don't crash!)" << endl;
     printAllPlayerStats();
 
@@ -615,10 +594,10 @@ void GameTable::revealFaceUpCardsWithDelayOf(short delay) {
 // Adjusts card deck number and plays sound
 void GameTable::adjustHandSizeNumber(shared_ptr<Player> player) {
     player->numCardsInHand--;
-    handSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
+    deckSizeNumbers[player->number - 1].setString(to_string(player->numCardsInHand));
     if(player->numCardsInHand < 1) 
-        handSizeNumbers[player->number - 1].setString("Out");
-    Miscellaneous::centerTextAlignment(handSizeNumbers[player->number - 1]);
+        deckSizeNumbers[player->number - 1].setString("Out");
+    Miscellaneous::centerTextAlignment(deckSizeNumbers[player->number - 1]);
 
     short randNum = Miscellaneous::generateRandomNumber(2);
     globalData->gameSound.playSoundEffect("cardDeal" + to_string(randNum) + ".ogg");
@@ -641,20 +620,36 @@ vector<short> GameTable::getActivePlayerIndecies() {
     for(auto i : playerList)
         if(!i->isOutOfGame)
             activePlayerIndecies.push_back(i->number - 1);
-
     return activePlayerIndecies;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::drawCardsBacksAndNumbers() {
+void GameTable::draw_CardsBacks() {
     for(short i = 0; i < numberOfPlayers; i++) {
+
         vector<short> activePlayerIndecies = getActivePlayerIndecies();
-        globalData->window.draw(greenRectangles[i]);
+        
         if(playerList[i]->numCardsInHand > 0)
             globalData->window.draw(cardDeck.cardBacks[i]);
-        globalData->window.draw(handSizeNumbers[i]);
+
         elapsed = clock.getElapsedTime();
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::draw_GreenRectangles() {
+    for(short i = 0; i < greenRectangles.size(); i++) {
+        globalData->window.draw(greenRectangles[i]);
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::draw_DeckSizeNumbers() {
+    for(short i = 0; i < deckSizeNumbers.size(); i++) {
+        globalData->window.draw(deckSizeNumbers[i]);
     }
 }
 
@@ -665,9 +660,9 @@ void GameTable::gameTableLoop() {
             activateGameRound();
         else {
             vector<short> winner = getActivePlayerIndecies();
-            handSizeNumbers[winner[0]].setString("  Winner!\nGame Over");
-            handSizeNumbers[winner[0]].setFillColor(sf::Color::Blue);
-            Miscellaneous::centerTextAlignment(handSizeNumbers[winner[0]]);
+            deckSizeNumbers[winner[0]].setString("  Winner!\nGame Over");
+            deckSizeNumbers[winner[0]].setFillColor(sf::Color::Blue);
+            Miscellaneous::centerTextAlignment(deckSizeNumbers[winner[0]]);
         }
 
         drawAllTableSprites();
@@ -676,8 +671,10 @@ void GameTable::gameTableLoop() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameTable::drawAllTableSprites() {
-    drawCardsBacksAndNumbers();
+void GameTable::draw_AllTableSprites() {
+    draw_GreenRectangles();
+    draw_CardsBacks();
+    draw_DeckSizeNumbers();
     drawPlayerFaceUpCards();
 
     if(mayDisplayWinnerText) globalData->window.draw(winnerText[winnerPool[0]->number - 1]);
@@ -747,7 +744,6 @@ void GameTable::printAllBooleanPermissions() {
     cout << "mayDisplayWinnerText: "      << mayDisplayWinnerText      << endl;
     cout << "mayDisplayTieText: "         << mayDisplayTieText         << endl;
     cout << "isATie: "                    << isATie                    << endl;
-    cout << "mayForceTie: "               << mayForceTie               << endl;
     cout << "mayBreakTie: "               << mayBreakTie               << endl;
     cout << "mayConcludeRound: "          << mayConcludeRound          << endl;
 }
@@ -784,8 +780,8 @@ void GameTable::scanForDuplicateCards() {
 // The player will still be part of the game, but considered out of cards (for debugging).
 void GameTable::kickPlayer(short playerNumber) {
     playerList[playerNumber - 1]->isOutOfGame = true;
-    handSizeNumbers[playerNumber - 1].setString("Kicked");
-    Miscellaneous::centerTextAlignment(handSizeNumbers[playerNumber - 1]);
+    deckSizeNumbers[playerNumber - 1].setString("Kicked");
+    Miscellaneous::centerTextAlignment(deckSizeNumbers[playerNumber - 1]);
 }
 
 // -------------------------------------------------------------------------------------------------
