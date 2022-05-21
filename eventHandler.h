@@ -16,43 +16,34 @@ class EventHandler {
 public:
 
 	EventHandler() {}
-	EventHandler(sf::RenderWindow & window, unsigned int & screenWidth, 
-				 unsigned int & screenHeight, GameSound & gameSound);
+	EventHandler(sf::RenderWindow & window, unsigned int & screenWidth, unsigned int & screenHeight);
 
 	void listen();
 
-	bool cardWasClicked     = false;
-	bool menuIconWasClicked = false;
-	bool mouseRelease       = false;
+	bool mouseRelease = false;
 
 private:
 
 	sf::RenderWindow* window;
 	unsigned int*  	  screenWidth;
 	unsigned int*     screenHeight;
-	GameSound* 		  gameSound;
 	sf::Event 	 	  event;
 	Joystick 		  joystick;
 
 	void mouseButton();
 	void closeWindow();
 	void resizeWindow();
-	void cardClicked();
-	void menuIconClicked();
-	void resetEvents();
 };
-
 
 
 // =================================================================================================
 
 
 EventHandler::EventHandler(sf::RenderWindow & window, unsigned int & screenWidth, 
-						   unsigned int & screenHeight, GameSound & gameSound) {
+						   unsigned int & screenHeight) {
 	this->window = &window;
 	this->screenWidth = &screenWidth;
 	this->screenHeight = &screenHeight;
-	this->gameSound = &gameSound;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -84,7 +75,6 @@ void EventHandler::listen() {
 				// cout << "Mouse position: {" << event.mouseMove.x << ", " << event.mouseMove.y << "}" << endl;
 				break;
 			default:
-				resetEvents();
 				break;
 		}	
 
@@ -100,8 +90,6 @@ void EventHandler::mouseButton() {
 	switch(event.key.code) {
 		case sf::Mouse::Left:
 			// cout << "Mouse LEFT" << endl;
-			cardClicked();
-			menuIconClicked();
 			break;
 		case sf::Mouse::Right:
 			// cout << "Mouse RIGHT" << endl;
@@ -132,37 +120,6 @@ void EventHandler::resizeWindow() {
 	screenHeight = &event.size.height;
 	sf::FloatRect visibleArea(0, 0, *screenWidth, *screenHeight);
 	window->setView(sf::View(visibleArea));
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void EventHandler::cardClicked() { 
-	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
-	if(mousePosition.x >= 50  && mousePosition.x <= 150 &&
-		mousePosition.y >= 37 && mousePosition.y <= 183) {
-		gameSound->playSoundEffect("tClick.ogg");
-		cardWasClicked = true;
-	}
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void EventHandler::menuIconClicked() { 
-	sf::Vector2i mousePosition = sf::Mouse::getPosition(*window);
-	// cout << "Left mouse button pressed at {" << mousePosition.x << ", " << mousePosition.y << "}\n";
-	if(mousePosition.x >= 10  && mousePosition.x <= 40 &&
-		mousePosition.y >= 10 && mousePosition.y <= 40) {
-		gameSound->playSoundEffect("tClick.ogg");
-		menuIconWasClicked = true;
-	}
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void EventHandler::resetEvents() {
-	cardWasClicked = false;
-	menuIconWasClicked = false;
 }
 
 #endif // EVENTHANDLER_H

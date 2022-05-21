@@ -55,9 +55,8 @@ private:
     }; 
 
     pair<pair<float, float>, pair<float, float>> gearIconClickArea = {
-        {50, 150}, {37, 183}
+        {10, 40}, {10, 40}
     };
-
 
     vector<pair<float, float>> const menuTextPositions = {
         {250.f, 65.f},
@@ -466,6 +465,7 @@ void GameMenu::listener_GearMenuIconClick(float x, float y) {
     bool yEnd   = y < gearIconClickArea.second.second;
 
     if(xBegin && xEnd && yBegin && yEnd) {
+        globalData->gameSound.playSoundEffect("tClick.ogg");
         globalData->gameMenuIsOpen = false;
     }
 }

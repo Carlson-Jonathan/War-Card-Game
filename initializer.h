@@ -18,7 +18,7 @@ class Initializer {
 public:
 
 	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
-					eventHandler(window, screenWidth, screenHeight, gameSound) {		
+					eventHandler(window, screenWidth, screenHeight) {		
 						
 		window.setFramerateLimit(frameRate);
 
