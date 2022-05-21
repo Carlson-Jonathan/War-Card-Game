@@ -21,7 +21,7 @@ private:
     Initializer* globalData;
 
     bool soundVolumeWasAdjusted = false;
-    bool buttonIsHeld = false;
+    bool buttonIsHeld = true;
 
     short gameSpeedSelection = 4;
 
@@ -280,9 +280,6 @@ bool GameMenu::leftClick() {
         return true;
     }
 
-    if(!sf::Mouse::isButtonPressed(sf::Mouse::Left) && buttonIsHeld) 
-        buttonIsHeld = false;
-
     return false;
 }
 
@@ -290,6 +287,7 @@ bool GameMenu::leftClick() {
 
 bool GameMenu::leftRelease() {
     if(globalData->eventHandler.mouseRelease) {
+        buttonIsHeld = false;
         globalData->eventHandler.mouseRelease = false;
         return true;
     }
@@ -321,7 +319,7 @@ void GameMenu::listen_ForMouseClicks() {
 
     if(leftRelease()) {
         if(soundVolumeWasAdjusted) {
-            globalData->gameSound.playSoundEffect("winner2.ogg");
+            globalData->gameSound.playSoundEffect("winner.ogg");
             soundVolumeWasAdjusted = false;
         } 
     }

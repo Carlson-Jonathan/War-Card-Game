@@ -342,9 +342,6 @@ bool GameTable::leftClick() {
         return true;
     }
 
-    if(!sf::Mouse::isButtonPressed(sf::Mouse::Left) && buttonIsHeld) 
-        buttonIsHeld = false;
-
     return false;
 }
 
@@ -352,6 +349,7 @@ bool GameTable::leftClick() {
 
 bool GameTable::leftRelease() {
     if(globalData->eventHandler.mouseRelease) {
+        buttonIsHeld = false;
         globalData->eventHandler.mouseRelease = false;
         return true;
     }
@@ -523,7 +521,7 @@ void GameTable::declareRoundResults() {
         mayBreakTie = true;
     }
     else {
-        globalData->gameSound.playSoundEffect("winner2.ogg");
+        globalData->gameSound.playSoundEffect("winner.ogg");
         mayDisplayWinnerText = true;
         mayConcludeRound = true;
     }
