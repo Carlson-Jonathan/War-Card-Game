@@ -20,10 +20,9 @@ public:
     friend CardDeck_Test; // For unit testing
 
 	vector<shared_ptr<Card>> deck;
-    vector<sf::Sprite>       cardBacks;
-
-
+    vector<sf::Sprite> cardBacks;
     vector<vector<shared_ptr<Card>>> divideDeck(short numberOfDecks);
+
     void generateCardBacks (short numberOfBacks);
     void printDeck (vector<shared_ptr<Card>> deck);
     void shuffleDeck();
@@ -39,8 +38,6 @@ private:
 
     void generateCardDeck  ();
 };
-
-#endif // CARDDECK_H
 
 
 // =================================================================================================
@@ -134,3 +131,5 @@ bool operator<(const Card & l, const Card & r) {
 bool operator>(const Card & l, const Card & r) {
     return l.cardName > r.cardName;
 }
+
+#endif // CARDDECK_H

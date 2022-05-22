@@ -18,7 +18,7 @@ class Initializer {
 public:
 
 	Initializer() : window(sf::VideoMode(screenWidth, screenHeight), "War Card Game By Jonathan Carlson"), 
-					eventHandler(window, screenWidth, screenHeight, gameSound) {
+					eventHandler(window, screenWidth, screenHeight) {		
 						
 		window.setFramerateLimit(frameRate);
 
@@ -36,15 +36,18 @@ public:
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
 	
-	short frameRate           = 20;
-	short gameSpeed			      = 5;
+	short frameRate = 20;
+	short gameSpeed	= 4;
+	short numberOfPlayers = 6;
 
-	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
-	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
-	string cardBack           = "redCardBack";
+	string defaultMusic      = "Sounds/Music/TownTheme.ogg";
+	string defaultFontFamily = "Fonts/Robusta-Regular.ttf";
+	string cardBack          = "redCardBack";
 
-	bool gameMenuIsOpen       = false;
-	bool autoClick            = false;	
+	bool gameMenuIsOpen = false;
+	bool atTitleScreen  = true;
+	bool autoClick      = false;	
+	bool mayInitializeGameTable = false;
 
 	sf::RenderWindow window;
 	sf::Font defaultFont;
@@ -62,11 +65,10 @@ private:
 			exit(139);
 		}   
 	}
-
 };
-
-#endif // INITIALIZER_H
 
 
 // =================================================================================================
 
+
+#endif // INITIALIZER_H

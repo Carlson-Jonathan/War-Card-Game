@@ -40,8 +40,6 @@ private:
 	};
 };
 
-#endif // GAMESOUND_H
-
 
 // =================================================================================================
 
@@ -148,3 +146,5 @@ void GameSound::setGlobalSoundEffectVolume(float newVolume) {
 		i.second.setVolume(newVolume);
 	}
 }
+
+#endif // GAMESOUND_H

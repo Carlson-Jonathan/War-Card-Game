@@ -16,8 +16,6 @@ public:
     void joystickActions(short joystickNumber);
 };
 
-#endif // JOYSTICK
-
 
 // =================================================================================================
 
@@ -34,7 +32,6 @@ void Joystick::joystickActions(short joystickNumber) {
             cout << "Joystick " << joystickNumber << " Button " << i << " is pressed " << endl;
         }
     }
-
-    // cout << "Joystick Axis: {" << sf::Joystick::getAxisPosition(joystickNum, sf::Joystick::X) << ", "
-    // 	 << sf::Joystick::getAxisPosition(joystickNum, sf::Joystick::Y) << "}" << endl;
 }
+
+#endif // JOYSTICK

@@ -10,6 +10,7 @@ add_executable(
 	Main.out 
 	main.cpp 
 	miscellaneous.cpp
+	# gameTable.cpp
 )
 
 target_link_libraries(Main.out sfml-graphics sfml-audio)
