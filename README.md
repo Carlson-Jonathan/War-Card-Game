@@ -7,6 +7,9 @@
    use the SFML framework more effectively. Once I complete this project, I should be able to apply
    the things learned to a more compicated card game.</p>
 
+<b>SCREENSHOTS:</b>
+<image src="Images/Screenshot.png"></image>
+
 <b>DEPENDENCIES:</b>
 <ul><li>C++ 11</li>
     <li>SFML (Get it here: https://www.sfml-dev.org/index.php)</li></ul>
