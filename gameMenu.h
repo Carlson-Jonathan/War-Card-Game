@@ -124,7 +124,7 @@ private:
 
 // -------------------------------------------------------------------------------------------------
 
-    void setGearMenuIcon();
+    void set_GearMenuIcon();
     void set_AllMenuItemPositions();
     void set_GameSpeedSelector();
     void set_VolumeBars();
@@ -153,7 +153,7 @@ private:
 
 GameMenu::GameMenu(Initializer & globalData) {
     this->globalData = &globalData;
-    setGearMenuIcon();
+    set_GearMenuIcon();
     set_AllMenuItemPositions();
     set_GameSpeedSelector();
     set_VolumeBars();
@@ -173,7 +173,7 @@ void GameMenu::gameMenuLoop() {
 
 // -------------------------------------------------------------------------------------------------
 
-void GameMenu::setGearMenuIcon() {
+void GameMenu::set_GearMenuIcon() {
 	gearMenuIcon.setTextureRect(sf::IntRect(0, 0, 30, 30));
     gearMenuIcon.setTexture(globalData->textures.textures["gearMenuIcon"]);
     gearMenuIcon.setOrigin(-10, -10);    

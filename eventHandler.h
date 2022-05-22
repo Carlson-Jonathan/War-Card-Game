@@ -69,7 +69,7 @@ void EventHandler::listen() {
 				mouseRelease = true;
 				break;		
 			case sf::Event::MouseWheelMoved:
-				cout << "Mouse wheel Scroll:" << event.mouseWheel.delta << endl;
+				// cout << "Mouse wheel Scroll:" << event.mouseWheel.delta << endl;
 				break;	
 			case sf::Event::MouseMoved:
 				// cout << "Mouse position: {" << event.mouseMove.x << ", " << event.mouseMove.y << "}" << endl;
@@ -78,8 +78,8 @@ void EventHandler::listen() {
 				break;
 		}	
 
-		joystick.joystickActions(0);
-		joystick.joystickActions(1);
+		// joystick.joystickActions(0);
+		// joystick.joystickActions(1);
 	}
 }
 
@@ -95,13 +95,13 @@ void EventHandler::mouseButton() {
 			// cout << "Mouse RIGHT" << endl;
 			break;
 		case sf::Mouse::Middle:
-			cout << "Mouse MIDDLE" << endl;
+			// cout << "Mouse MIDDLE" << endl;
 			break;
 		case sf::Mouse::XButton1:
-			cout << "Mouse XButton1" << endl;
+			// cout << "Mouse XButton1" << endl;
 			break;
 		case sf::Mouse::XButton2:
-			cout << "Mouse XButton2" << endl;
+			// cout << "Mouse XButton2" << endl;
 			break;
 	}
 }	

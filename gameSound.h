@@ -22,13 +22,8 @@ public:
 
 	float globalSoundEffectVolume = 100.f;
 
-	vector<string> getAllFileNamesFromDirectory(const char *path);
-	void loadSoundFilePathsFromDirectories();
-	void loadSoundEffects();
 	void playSoundEffect(string effect);
 	void loadAndPlayMusic(string song);
-	void loadAndPlayRandomSongFromDirectory();
-	void setGlobalSoundEffectVolume(float newVolume);
 
 private: 
 
@@ -38,6 +33,10 @@ private:
 	vector<string> 				 soundDirectories = {
 		"Sounds/Effects",
 	};
+
+	void loadSoundEffects();
+	void loadSoundFilePathsFromDirectories();
+	vector<string> getAllFileNamesFromDirectory(const char *path);
 };
 
 
@@ -133,18 +132,6 @@ void GameSound::loadAndPlayMusic(string song) {
 		exit(139);
 	}
 	music.play();
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameSound::loadAndPlayRandomSongFromDirectory() {}
-
-// -------------------------------------------------------------------------------------------------
-
-void GameSound::setGlobalSoundEffectVolume(float newVolume) {
-	for(auto i : soundEffects) {
-		i.second.setVolume(newVolume);
-	}
 }
 
 #endif // GAMESOUND_H
