@@ -18,7 +18,7 @@ int main() {
 	Initializer globalData;
 	TitleScreen titleScreen (globalData);
 	GameMenu    gameMenu    (globalData);
-	GameTable   gameTable   (globalData); 
+	GameTable   gameTable;
 
 	while(globalData.window.isOpen()) {
 		globalData.eventHandler.listen();
@@ -26,7 +26,8 @@ int main() {
 
 		if(globalData.mayInitializeGameTable) {
 			globalData.mayInitializeGameTable = false;
-			// gameTable = GameTable(globalData);
+			gameMenu.updateNumberOfPlayersText(globalData.numberOfPlayers);
+			gameTable.construct(globalData);
 		}
 
 		// Toggle between game and menu

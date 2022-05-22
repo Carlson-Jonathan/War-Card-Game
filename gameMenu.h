@@ -15,6 +15,7 @@ public:
     GameMenu(Initializer & globalData);
 
     void gameMenuLoop();
+    void updateNumberOfPlayersText(short number);
 
 private:
 
@@ -34,9 +35,9 @@ private:
     sf::Sprite gearMenuIcon;
 
     vector<sf::Text> menuItemTexts;
-    vector<string> const menuItemStrings = {
+    vector<string> menuItemStrings = {
         "Settings",
-        "Number of Players:\t" + to_string(globalData->numberOfPlayers),
+        "Number of Players:\t6",
         "Game Speed:\t1  2  3  4  5  6  7  8  9  10",
         "Auto Play:\tDisabled",
         "Card Style:",
@@ -466,6 +467,12 @@ void GameMenu::listener_GearMenuIconClick(float x, float y) {
         globalData->gameSound.playSoundEffect("tClick.ogg");
         globalData->gameMenuIsOpen = false;
     }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameMenu::updateNumberOfPlayersText(short number) {
+    menuItemTexts[1].setString("Number of Players:\t" + to_string(number));
 }
 
 // -------------------------------------------------------------------------------------------------

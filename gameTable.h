@@ -19,10 +19,13 @@ public:
 
     GameTable() {}
     GameTable(Initializer & globalData);
+    void construct(Initializer & globalData);
+
     void gameTableLoop();
 
     short numberOfPlayers = 0;
 
+    
 private:
 
     short faceupCards = 0;
@@ -147,10 +150,17 @@ private:
 // =================================================================================================
 
 
-GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
+GameTable::GameTable(Initializer & globalData) {
+    construct(globalData);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+void GameTable::construct(Initializer & globalData) {
+    this->cardDeck = CardDeck(globalData);
     this->globalData = &globalData;
     this->numberOfPlayers = globalData.numberOfPlayers;
-    this->font = globalData.defaultFont;
+    this->font = globalData.defaultFont;        
     verifyNumberOfPlayers();
     generatePlayers();
     dealCardsToPlayers();
