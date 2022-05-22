@@ -8,22 +8,31 @@
 #include "initializer.h"
 #include "gameTable.h"
 #include "gameMenu.h"
+#include "titleScreen.h"
 
 using namespace std;
 
 int main() {
 
 	srand(time(NULL)); 		// For seeding the random number generator
-	Initializer         globalData;
-	GameMenu  gameMenu (globalData);
-	GameTable gameTable(globalData);
+	Initializer globalData;
+	TitleScreen titleScreen (globalData);
+	GameMenu    gameMenu    (globalData);
+	GameTable   gameTable   (globalData); 
 
 	while(globalData.window.isOpen()) {
 		globalData.eventHandler.listen();
 		globalData.window.clear(sf::Color(0, 90, 0));
 
+		if(globalData.mayInitializeGameTable) {
+			globalData.mayInitializeGameTable = false;
+			// gameTable = GameTable(globalData);
+		}
+
 		// Toggle between game and menu
-		if(globalData.gameMenuIsOpen)
+		if(globalData.atTitleScreen)
+			titleScreen.titleScreenLoop();
+		else if(globalData.gameMenuIsOpen)
 			gameMenu.gameMenuLoop();
 		else
 			gameTable.gameTableLoop();

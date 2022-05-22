@@ -36,15 +36,18 @@ public:
 	unsigned int screenWidth  = 500;
 	unsigned int screenHeight = 750;
 	
-	short frameRate           = 20;
-	short gameSpeed		      = 4;
+	short frameRate = 20;
+	short gameSpeed	= 4;
+	short numberOfPlayers = 6;
 
-	string defaultMusic       = "Sounds/Music/TownTheme.ogg";
-	string defaultFontFamily  = "Fonts/Robusta-Regular.ttf";
-	string cardBack           = "redCardBack";
+	string defaultMusic      = "Sounds/Music/TownTheme.ogg";
+	string defaultFontFamily = "Fonts/Robusta-Regular.ttf";
+	string cardBack          = "redCardBack";
 
-	bool gameMenuIsOpen       = false;
-	bool autoClick            = false;	
+	bool gameMenuIsOpen = false;
+	bool atTitleScreen  = true;
+	bool autoClick      = false;	
+	bool mayInitializeGameTable = false;
 
 	sf::RenderWindow window;
 	sf::Font defaultFont;
@@ -62,7 +65,6 @@ private:
 			exit(139);
 		}   
 	}
-
 };
 
 

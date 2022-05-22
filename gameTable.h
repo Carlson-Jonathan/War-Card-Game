@@ -21,7 +21,7 @@ public:
     GameTable(Initializer & globalData);
     void gameTableLoop();
 
-    short numberOfPlayers = 6;
+    short numberOfPlayers = 0;
 
 private:
 
@@ -149,12 +149,13 @@ private:
 
 GameTable::GameTable(Initializer & globalData) : cardDeck(globalData) {
     this->globalData = &globalData;
+    this->numberOfPlayers = globalData.numberOfPlayers;
+    this->font = globalData.defaultFont;
     verifyNumberOfPlayers();
     generatePlayers();
+    dealCardsToPlayers();
     set_GearMenuIcon();
     set_GameSpeed(globalData.gameSpeed);
-    dealCardsToPlayers();
-    this->font = globalData.defaultFont;
     set_CardPositions();
     set_CardBackPositions();
     set_VictoryText();

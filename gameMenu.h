@@ -36,7 +36,7 @@ private:
     vector<sf::Text> menuItemTexts;
     vector<string> const menuItemStrings = {
         "Settings",
-        "Number of Players:\t6",
+        "Number of Players:\t" + to_string(globalData->numberOfPlayers),
         "Game Speed:\t1  2  3  4  5  6  7  8  9  10",
         "Auto Play:\tDisabled",
         "Card Style:",
