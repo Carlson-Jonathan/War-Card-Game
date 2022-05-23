@@ -26,4 +26,4 @@
 
 <b>UML DIAGRAM</b>
 
-![](Images/UML_Diagram.png)
+![](Images/Game_UML_Diagram.png)
