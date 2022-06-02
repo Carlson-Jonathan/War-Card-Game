@@ -82,10 +82,10 @@ void TextureManager::loadTextureFilePathsFromDirectories() {
 
 	for(auto dir : textureDirectories) {
 
-		char cDir[dir.length()];
+		char* cDir = new char[dir.length()];
 		strcpy(cDir, dir.c_str()); 
 
-		vector textureFiles = getAllFileNamesFromDirectory(cDir);
+		vector<string> textureFiles = getAllFileNamesFromDirectory(cDir);
 
 		for(auto file : textureFiles) {
 

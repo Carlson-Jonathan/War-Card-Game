@@ -75,10 +75,10 @@ void GameSound::loadSoundFilePathsFromDirectories() {
 	vector<string> supportedSoundTypes = {".wav", ".ogg"};
 
 	for(auto dir : soundDirectories) {
-		char cDir[dir.length()];
+		char* cDir = new char[dir.length()];
 		strcpy(cDir, dir.c_str()); 
 
-		vector soundFiles = getAllFileNamesFromDirectory(cDir);
+		vector<string> soundFiles = getAllFileNamesFromDirectory(cDir);
 
 		for(auto file : soundFiles) {
 			bool invalidFile = true;
