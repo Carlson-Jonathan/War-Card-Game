@@ -11,6 +11,10 @@
 <ul><li>C++ 11</li>
     <li>SFML (Get it here: https://www.sfml-dev.org/index.php)</li></ul>
 
+<b>RUNNING INSTRUCTIONS:</b>
+    <p>There is a file in this repository called "War.zip" that contains an .exe for Windows and an .out for Linux. Just download, unzip, and run.
+    If running in Windows, you will likely get virus warnings when trying to open the .exe file ("Oh no! exe bad! Time to panic!"). Just ignore it. Not a virus.</p>
+
 <b>COMPILE INSTRUCTIONS (CMake):</b>
 <ol><li>Create "Build" folder in the code directory</li>
     <li>Change directory into the "Build" folder</li>
@@ -25,6 +29,12 @@
 <b>COMPILE INSTRUCTIONS (g++):</b>
     <ul><li>If CMake isnt working, you can use the 'compileAndRun.bash' script. Just run as is.</li></ul>
 
+<b>OTHER:</b>
+    <p>The above compile instructions are for Linux. Compiling in Windows may be difficult because Visual C++ does not contain libraries that I used like "dirent".
+    I actually had to copy this library from the internet and place it in my code as a custom library to get it to work. Additionally, Visual C++ is picky about 
+    some syntax that g++ ignores and gives you errors for. It took quite a bit of work, but I managed to cross-compile in windows and provide the .exe in the "War.zip"
+    file. If you just want to play the game and are using Windows, save yourself the headache and just use my provided file.</p>
+    
 <b>UML DIAGRAM:</b>
 
 ![](Images/Game_UML_Diagram.png)
